@@ -5,13 +5,13 @@
 %endif
 
 Name:           roboto
-Version:        1.3
-Release:        2%{?dist}
+Version:        2.138
+Release:        1%{?dist}
 Summary:        Roboto font
 
 License:        Apache Software License v2
-URL:            http://developer.android.com/design/style/typography.html
-Source0:        http://developer.android.com/downloads/design/roboto-1.3.tar.gz
+URL:            https://material.io/design/typography/
+Source0:        https://github.com/google/roboto/archive/v2.138.tar.gz
 %if 0%{?suse_version}
 BuildRequires:  unzip
 %endif
@@ -49,8 +49,8 @@ and the Roboto Slab family.
 %install
 rm -rf %{buildroot}
 install -d -m 755 %{buildroot}%{apachedocroot}/fonts/
-rm -f Roboto_v1.3/*/{Icon,.DS_Store}
-cp -a Roboto_v1.3/Roboto Roboto_v1.3/RobotoCondensed %{buildroot}%{apachedocroot}/fonts/
+rm -f roboto-2.138/*/{Icon,.DS_Store}
+cp -a roboto-2.138/Roboto Roboto_v1.3/RobotoCondensed %{buildroot}%{apachedocroot}/fonts/
 
 %clean
 rm -rf %{buildroot}
@@ -70,6 +70,10 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Fri Feb 21 2020 Stefan Bluhm <stefan.bluhm@clacee.eu> 2.138-1
+- Updated to 2.138
+- Updated sources
+
 * Fri Feb 09 2018 Michael Mraka <michael.mraka@redhat.com> 1.3-2
 - removed %%%%defattr from specfile
 - removed Group from specfile
@@ -86,5 +90,3 @@ rm -rf %{buildroot}
 
 * Fri Jan 17 2014 Michael Mraka <michael.mraka@redhat.com> 1.2-1
 - initial build of roboto package
-
-
