@@ -80,7 +80,7 @@ Obsoletes:	%{name}-demo < 0:3.1.2-2jpp
 %if 0%{?rhel} == 8
 BuildRequires:	xerces-j2 < 2.11.0-34.module_el8.0.0+42
 BuildRequires:	xml-commons-apis < 1.4.01-25.module_el8.0.0+42
-BuildRequires:	ant < 1.10.5-1.module_el8.0.0+47
+#BuildRequires:	ant < 1.10.5-1.module_el8.0.0+47
 %endif
 
 %if %{gcj_support}
