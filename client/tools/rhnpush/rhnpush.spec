@@ -8,6 +8,10 @@
 %{!?pylint3_check: %global pylint3_check 1}
 %endif
 
+%if  0%{?fedora} >= 28  || 0%{?rhel} >= 8
+%global __python /usr/bin/python2
+%endif
+
 # we need python2 libs for server!
 %global build_py2   1
 
@@ -17,7 +21,7 @@ Name:          rhnpush
 Summary:       Package uploader for the Spacewalk or Red Hat Satellite Server
 License:       GPLv2
 URL:           https://github.com/spacewalkproject/spacewalk
-Version:       5.5.120
+Version:       5.5.121
 Release:       1%{?dist}
 Source0:       https://github.com/spacewalkproject/spacewalk/archive/%{name}-%{version}.tar.gz
 BuildArch:     noarch
@@ -41,7 +45,7 @@ per channel.
 Summary: Package uploader for the Spacewalk or Red Hat Satellite Server
 %{?python_provide:%python_provide python2-%{name}}
 Requires: %{name} = %{version}-%{release}
-%if 0%{?fedora} >= 28
+%if 0%{?fedora} >= 28 || 0%{?rhel} >= 8
 Requires: python2-rpm
 BuildRequires: python2-devel
 %else
