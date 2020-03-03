@@ -148,7 +148,7 @@ Requires: rhnpush >= 5.5.74
 # proxy isn't Python 3 yet
 Requires: python2-rhnpush
 BuildRequires: /usr/bin/docbook2man
-BuildRequires: python-devel
+BuildRequires: python2-devel
 Obsoletes: rhn_package_manager < 5.3.0
 Obsoletes: rhns-proxy-package-manager < 5.3.0
 
@@ -212,9 +212,9 @@ if [ -f $RHN_CONFIG_PY ] ; then
     # Check whether the config command supports the ability to retrieve a
     # config variable arbitrarily.  Versions of  < 4.0.6 (rhn) did not.
 
-    python $RHN_CONFIG_PY proxy.broker > /dev/null 2>&1
+    python2 $RHN_CONFIG_PY proxy.broker > /dev/null 2>&1
     if [ $? -eq 1 ] ; then
-        RHN_PKG_DIR=$(python $RHN_CONFIG_PY get proxy.broker pkg_dir)
+        RHN_PKG_DIR=$(python2 $RHN_CONFIG_PY get proxy.broker pkg_dir)
     fi
 fi
 
