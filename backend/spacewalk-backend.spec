@@ -240,7 +240,11 @@ Summary: Spacewalk server and client tools libraries
 %if 0%{?suse_version}
 BuildRequires: python-devel
 %else
+%if 0%{?rhel} >= 8
+Requires: python2
+%else
 Requires: python
+%endif
 BuildRequires: python2-devel
 Conflicts: %{name} < 1.7.0
 Requires: python2-spacewalk-usix
