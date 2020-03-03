@@ -17,7 +17,7 @@ URL:            https://www.sitemesh.org/
 /usr/bin/rhpkg prep
 %endif
 Source0:        sitemesh-2.4.2.tar.xz
-Source1:        https://central.maven.org/maven2/opensymphony/sitemesh/2.4.2/sitemesh-2.4.2.pom
+Source1:        https://repo1.maven.org/maven2/opensymphony/sitemesh/2.4.2/sitemesh-2.4.2.pom
 Patch0:         0000-sitemesh-build.patch
 Patch1:         0001-sitemesh-lexer_flex.patch
 Patch2:         0002-sitemesh-tapestry-Title.patch
