@@ -8,7 +8,7 @@ Release:        2.8%{?dist}
 Epoch:          0
 Summary:        Sitemesh
 License:        ASL 1.1
-URL:            http://www.sitemesh.org/
+URL:            https://www.sitemesh.org/
 %if 0
 /bin/rm -rf sitemesh-2.4.2.tar.xz sitemesh-2.4.2/ .gitignore
 /usr/bin/svn -q export -r 446 https://svn.java.net/svn/sitemesh~svn/tags/SITEMESH_2-4-2/ sitemesh-2.4.2/
@@ -17,7 +17,7 @@ URL:            http://www.sitemesh.org/
 /usr/bin/rhpkg prep
 %endif
 Source0:        sitemesh-2.4.2.tar.xz
-Source1:        http://central.maven.org/maven2/opensymphony/sitemesh/2.4.2/sitemesh-2.4.2.pom
+Source1:        https://central.maven.org/maven2/opensymphony/sitemesh/2.4.2/sitemesh-2.4.2.pom
 Patch0:         0000-sitemesh-build.patch
 Patch1:         0001-sitemesh-lexer_flex.patch
 Patch2:         0002-sitemesh-tapestry-Title.patch
