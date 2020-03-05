@@ -12,9 +12,13 @@ BuildArch:	noarch
 Requires:	python2-pylint > 1.1
 %else
 %if 0%{?fedora} || 0%{?rhel} >= 7
+%if 0%{?rhel} >= 8
+Requires:       pylint > 1.5
+%else
 Requires:	python2-pylint > 1.5
 %else
 Requires:	python2-pylint < 1.0
+%endif
 %endif
 %endif
 BuildRequires:	asciidoc
