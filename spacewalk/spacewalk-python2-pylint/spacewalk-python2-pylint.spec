@@ -16,9 +16,9 @@ Requires:	python2-pylint > 1.1
 Requires:       pylint > 1.5
 %else
 Requires:	python2-pylint > 1.5
+%endif
 %else
 Requires:	python2-pylint < 1.0
-%endif
 %endif
 %endif
 BuildRequires:	asciidoc
