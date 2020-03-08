@@ -1,3 +1,11 @@
+%bcond_with server
+
+%if %{with server}
+# we need python2 libs for server!
+%global build_py2   1
+%global build_py3   0
+%else
+
 %if (0%{?fedora} && 0%{?fedora} <= 29) || 0%{?rhel} >= 7
 %{!?pylint2_check: %global pylint2_check 1}
 %endif
@@ -12,8 +20,7 @@
 %global __python /usr/bin/python2
 %endif
 
-# we need python2 libs for server!
-%global build_py2   1
+%endif
 
 %define pythonX %{?default_py3: python3}%{!?default_py3: python2}
 
