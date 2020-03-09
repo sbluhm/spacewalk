@@ -3,7 +3,6 @@
 %if %{with server}
 # we need python2 libs for server!
 %global build_py2   1
-%global __python /usr/bin/python2
 %global build_py3   0
 %else
 
@@ -14,10 +13,12 @@
 %if 0%{?fedora} || 0%{?rhel} >= 8
 %global build_py3   1
 %global default_py3 1
-%global __python /usr/bin/python3
 %{!?pylint3_check: %global pylint3_check 1}
 %endif
 
+%if  0%{?fedora} >= 28  || 0%{?rhel} >= 8
+%global __python /usr/bin/python2
+%endif
 
 %endif
 
