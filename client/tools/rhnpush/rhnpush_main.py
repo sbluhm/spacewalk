@@ -390,15 +390,12 @@ class UploadClass(uploadLib.UploadClass):
                 self.warn(1, "Package %s already exists on the RHN Server-- Skipping Upload...." % pkg)
                 continue
 
-            elif server_digest == ():
-                self.warn(1, "Package %s Not Found on RHN Server -- Uploading" % pkg)
-
-            elif server_digest == "on-disk" and not self.options.force:
+            if server_digest == "on-disk" and not self.options.force:
                 channel_packages.append(pkgs_info[pkg_key])
                 self.warn(0, "Package on disk but not on db -- Skipping Upload " % pkg)
                 continue
 
-            elif server_digest != digest:
+            if server_digest != digest:
                 if self.options.force:
                     self.warn(1, "Package checksum %s mismatch  -- Forcing Upload" % pkg)
                 else:
@@ -411,6 +408,8 @@ class UploadClass(uploadLib.UploadClass):
                         self.die(-1, msg)
                     self.warn(0, msg)
                     continue
+            if server_digest == ():
+                self.warn(1, "Package %s Not Found on RHN Server -- Uploading" % pkg)
 
             for _t in range(0, tries):
                 try:
