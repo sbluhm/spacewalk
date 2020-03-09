@@ -796,7 +796,7 @@ def packageCompare(pkg1, pkg2, is_mpm=None):
     if is_mpm:
         func = rhn_mpm.labelCompare
     else:
-        from spacewalk.common import rhn_rpm # pylint: disable=C0415
+        from spacewalk.common import rhn_rpm # pylint: disable=bad-option-value,C0415
         func = rhn_rpm.labelCompare
     return func(packages[0], packages[1])
 
