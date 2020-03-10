@@ -35,7 +35,11 @@ Requires:       spacewalk-certs-tools
 Requires:       perl-Satcon
 Requires:       spacewalk-backend-tools
 Requires:       cobbler20
+%if 0%{?rhel} >= 8
+Requires:       python2-pyyaml
+%else
 Requires:       PyYAML
+%endif
 Requires:       /usr/bin/gpg
 Requires:       spacewalk-setup-jabberd
 Requires:       spacewalk-base-minimal
