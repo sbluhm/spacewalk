@@ -18,7 +18,12 @@ BuildRequires:  spacewalk-python2-pylint
 %endif
 BuildRequires:  /usr/bin/docbook2man
 BuildRequires:  docbook-utils
+%if 0%{?rhel} >= 8
+BuildRequires:  python2
+%else
 BuildRequires:  python
+%endif
+
 BuildRequires: /usr/bin/pod2man
 %if 0%{?fedora} || 0%{?rhel} > 5
 BuildRequires:  yum < 4.0.0
@@ -37,10 +42,21 @@ Requires:       net-tools
 Requires:       /usr/bin/spacewalk-sql
 Requires:       perl-Satcon
 Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
-Requires:       python, rpm-python
+Requires:       rpm-python
+
+%if 0%{?rhel} >= 8
+BuildRequires:  python2
+%else
+BuildRequires:  python
+%endif
+
+
 %if 0%{?rhel} == 6
 Requires:       python-argparse
 %endif
+
+
+
 Requires:       rhnlib >= 2.5.20
 Requires:       rpm
 Requires:       setup
