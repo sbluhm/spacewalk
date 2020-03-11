@@ -7,7 +7,7 @@ License: GPLv2
 URL:     https://github.com/spacewalkproject/spacewalk
 Source0: https://github.com/spacewalkproject/spacewalk/archive/%{name}-%{version}.tar.gz
 BuildArch: noarch
-Requires:  /etc/cron.daily/certwatch
+Requires:  (/etc/cron.daily/certwatch or crypto-utils)
 Obsoletes: rhn-ssl-cert-check < %{epoch}:%{version}
 Provides:  rhn-ssl-cert-check = %{epoch}:%{version}
 
