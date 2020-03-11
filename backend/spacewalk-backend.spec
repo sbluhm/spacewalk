@@ -362,7 +362,9 @@ Requires: %{name}-server = %{version}-%{release}
 Requires: python2-spacewalk-usix
 Requires: subscription-manager
 Requires: %{m2crypto}
+%if 0%{?rhel} != 8
 Requires: python-argparse
+%endif
 
 %description cdn
 Tools for syncing content from Red Hat CDN
