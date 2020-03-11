@@ -12,9 +12,9 @@ Summary:        A javascript date library for parsing, validating, manipulating,
 License:        MIT
 URL:            http://momentjs.com/
 
-Source0:        http://momentjs.com/downloads/moment-with-langs.js
-Source1:        http://momentjs.com/downloads/moment-with-langs.min.js
-Source2:        http://momentjs.com/downloads/moment.min.js
+Source0:        https://raw.githubusercontent.com/moment/moment/2.6.0/min/moment-with-langs.js
+Source1:        https://raw.githubusercontent.com/moment/moment/2.6.0/min/moment-with-langs.min.js
+Source2:        https://raw.githubusercontent.com/moment/moment/2.6.0/min/moment.min.js
 
 Source3:        httpd-momentjs.conf
 
