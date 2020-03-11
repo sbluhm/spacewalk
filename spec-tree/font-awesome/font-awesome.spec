@@ -5,13 +5,13 @@
 %endif
 
 Name:           font-awesome
-Version:        4.0.3
-Release:        3%{?dist}
+Version:        4.7.0
+Release:        1%{?dist}
 Summary:        The iconic font designed for Bootstrap
 
 License:        OFL 1.1 and MIT
-URL:            http://fontawesome.io/
-Source0:        http://fontawesome.io/assets/font-awesome-4.0.3.zip
+URL:            https://fontawesome.com/
+Source0:        https://fontawesome.com/v4.7.0/assets/font-awesome-4.7.0.zip
 %if 0%{?suse_version}
 BuildRequires:  unzip
 %endif
