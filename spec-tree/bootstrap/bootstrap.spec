@@ -13,7 +13,7 @@ Summary:        Sleek, intuitive, and powerful mobile first front-end framework 
 
 License:        Apache Software License v2
 URL:            http://getbootstrap.com/
-Source0:        https://github.com/twbs/bootstrap/archive/bootstrap-3.0.0.tar.gz
+Source0:        https://github.com/twbs/bootstrap/archive/v3.0.0.tar.gz
 Source1:        httpd-bootstrap-less.conf
 %if 0%{?suse_version}
 Requires(pre):  apache2
