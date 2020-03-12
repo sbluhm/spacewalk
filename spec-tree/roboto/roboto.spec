@@ -50,7 +50,7 @@ and the Roboto Slab family.
 rm -rf %{buildroot}
 install -d -m 755 %{buildroot}%{apachedocroot}/fonts/
 rm -f roboto-2.138/*/{Icon,.DS_Store}
-cp -a roboto-2.138/Roboto Roboto_v1.3/RobotoCondensed %{buildroot}%{apachedocroot}/fonts/
+cp -a roboto-2.138/Roboto Roboto_v2.138/RobotoCondensed %{buildroot}%{apachedocroot}/fonts/
 
 %clean
 rm -rf %{buildroot}
