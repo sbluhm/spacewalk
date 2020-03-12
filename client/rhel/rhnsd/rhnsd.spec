@@ -8,7 +8,7 @@
 
 Summary: Spacewalk query daemon
 Name: rhnsd
-Version: 5.0.46
+Version: 5.0.47
 Release: 1%{?dist}
 %if %{_vendor} == "debbuild"
 Group:      utils
@@ -93,6 +93,7 @@ install -m 0644 rhnsd.service $RPM_BUILD_ROOT/%{_unitdir}/
 install -m 0644 rhnsd.timer $RPM_BUILD_ROOT/%{_unitdir}/
 mkdir -p $RPM_BUILD_ROOT/%{_presetdir}
 install -m 0644 10-rhnsd.preset $RPM_BUILD_ROOT/%{_presetdir}/10-rhnsd.preset
+install -m 0644 man/en/rhnsd.8.timer $RPM_BUILD_ROOT/%{_mandir}/man8/rhnsd.8
 %else
 # find_lang not available on debbuild; we'll work around this below
 %if %{_vendor} != "debbuild"
@@ -219,6 +220,9 @@ fi
 %endif
 
 %changelog
+* Wed Mar 11 2020 Michael Mraka <michael.mraka@redhat.com> 5.0.47-1
+- 1679743 - updated manpage for rhnsd timer
+
 * Wed Jun 26 2019 Michael Mraka <michael.mraka@redhat.com> 5.0.46-1
 - install preset file
 

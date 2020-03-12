@@ -19,7 +19,7 @@
 Name: spacewalk-java
 Summary: Java web application files for Spacewalk
 License: GPLv2
-Version: 2.10.15
+Version: 2.11.2
 Release: 1%{?dist}
 URL:       https://github.com/spacewalkproject/spacewalk
 Source0:   https://github.com/spacewalkproject/spacewalk/archive/%{name}-%{version}.tar.gz
@@ -756,6 +756,21 @@ fi
 %{_prefix}/share/rhn/search/lib/postgresql-jdbc.jar
 
 %changelog
+* Wed Mar 11 2020 Stefan Bluhm <stefan.bluhm@clacee.eu> 2.11.1-2
+- Updated cglib name for RHEL8.
+
+* Wed Mar 11 2020 Michael Mraka <michael.mraka@redhat.com> 2.11.1-1
+- 1791111 - improved performance of cleanup-data-bunch
+
+* Thu Feb 27 2020 Michael Mraka <michael.mraka@redhat.com> 2.10.18-1
+- fixed checkstyle header
+
+* Thu Feb 27 2020 Michael Mraka <michael.mraka@redhat.com> 2.10.17-1
+- updated API version for the new release
+
+* Wed Feb 26 2020 Michael Mraka <michael.mraka@redhat.com> 2.10.16-1
+- updated copyright to 2020
+
 * Wed Jan 15 2020 Michael Mraka <michael.mraka@redhat.com> 2.10.15-1
 - 1790638 - --nobase option was removed in version F22
 

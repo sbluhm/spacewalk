@@ -4,7 +4,7 @@
 %endif
 
 Name:		spacewalk-utils
-Version:	2.10.6
+Version:	2.11.2
 Release:	1%{?dist}
 Summary:	Utilities that may be run against a Spacewalk server.
 
@@ -91,6 +91,20 @@ spacewalk-python2-pylint $RPM_BUILD_ROOT%{rhnroot}
 
 
 %changelog
+* Wed Mar 11 2020 Michael Mraka <michael.mraka@redhat.com> 2.11.2-1
+- 1704425 - fixed postgresql timestamp handling
+
+* Fri Mar 06 2020 Michael Mraka <michael.mraka@redhat.com> 2.11.1-1
+- added CentOS 8 repos
+
+* Wed Feb 26 2020 Michael Mraka <michael.mraka@redhat.com> 2.10.8-1
+- updated copyright to 2020
+
+* Wed Feb 26 2020 Michael Mraka <michael.mraka@redhat.com> 2.10.7-1
+- added Fedora 31 and Spacewalk 2.10 entries
+- removed outdated spacewalk 2.8 entries
+- removed EOLed Fedora entries
+
 * Mon Feb 10 2020 Michael Mraka <michael.mraka@redhat.com> 2.10.6-1
 - require real yum not dnf alias
 
