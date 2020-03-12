@@ -2,10 +2,17 @@
 %{!?pylint_check: %global pylint_check 1}
 %endif
 
+%if 0%{?rhel} >= 8
+%global python_prefix python2
+%global __python /usr/bin/python2
+%else
+%global python_prefix python
+%endif
+
 Name: spacewalk-proxy
 Summary: Spacewalk Proxy Server
 Version: 2.11.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv2
 URL:     https://github.com/spacewalkproject/spacewalk
 Source0: https://github.com/spacewalkproject/spacewalk/archive/%{name}-%{version}.tar.gz
@@ -148,7 +155,7 @@ Requires: rhnpush >= 5.5.74
 # proxy isn't Python 3 yet
 Requires: python2-rhnpush
 BuildRequires: /usr/bin/docbook2man
-BuildRequires: python-devel
+BuildRequires: %{python_prefix}-devel
 Obsoletes: rhn_package_manager < 5.3.0
 Obsoletes: rhns-proxy-package-manager < 5.3.0
 
@@ -212,9 +219,9 @@ if [ -f $RHN_CONFIG_PY ] ; then
     # Check whether the config command supports the ability to retrieve a
     # config variable arbitrarily.  Versions of  < 4.0.6 (rhn) did not.
 
-    python $RHN_CONFIG_PY proxy.broker > /dev/null 2>&1
+    %{__python} $RHN_CONFIG_PY proxy.broker > /dev/null 2>&1
     if [ $? -eq 1 ] ; then
-        RHN_PKG_DIR=$(python $RHN_CONFIG_PY get proxy.broker pkg_dir)
+        RHN_PKG_DIR=$(%{__python} $RHN_CONFIG_PY get proxy.broker pkg_dir)
     fi
 fi
 
@@ -362,6 +369,9 @@ fi
 
 
 %changelog
+* Thu Mar 12 2020 Stefan Bluhm <stefan.bluhm@clacee.eu> 2.11.0-2
+- Modified Python 2 usage for RHEL8.
+
 * Wed Feb 26 2020 Michael Mraka <michael.mraka@redhat.com> 2.10.4-1
 - updated copyright to 2020
 
