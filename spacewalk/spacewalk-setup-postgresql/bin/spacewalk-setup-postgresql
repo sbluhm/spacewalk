@@ -93,6 +93,9 @@ PG_HBA="$PG_DATA/pg_hba.conf"
 PG_IDENT="$PG_DATA/pg_ident.conf"
 POSTGRESQL="$PG_DATA/postgresql.conf"
 POSTGRESQL_SW_APPEND=/usr/share/spacewalk/setup/postgresql.conf
+if [ "$(printf '%s\n' "9.5" `postgres --version | sed 's/[^.0-9][^.0-9]*//g'` | sort -V | head -n1)" = "9.5" ]; then
+        POSTGRESQL_SW_APPEND=/usr/share/spacewalk/setup/postgresql95.conf
+fi
 PORT=5432
 PG_PIDFILE="/var/run/postmaster.$PORT.pid"
 if isSUSE ; then
