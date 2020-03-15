@@ -300,7 +300,7 @@ class Runner:
         try:
             ret = function()
         except (xmlDiskSource.MissingXmlDiskSourceDirError,
-                xmlDiskSource.MissingXmlDiskSourceFileError), e:
+                xmlDiskSource.MissingXmlDiskSourceFileError) as e:
             log(-1, self._xml_file_dir_error_message +
                 '\n       Error message: %s\n' % e)
             return 1
