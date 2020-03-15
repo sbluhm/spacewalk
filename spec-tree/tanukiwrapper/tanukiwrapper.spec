@@ -37,26 +37,26 @@
 %define build_subpackages 0
 %define section	free
 
-Name:		tanukiwrapper
-Version:	3.2.3
-Release:	22%{?dist}
-Summary:	Java Service Wrapper
-Epoch:		0
-License:	BSD
-URL:		http://wrapper.tanukisoftware.org/
-Source0:	http://download.sourceforge.net/wrapper/wrapper_3.2.3_src.tar.gz
-Patch1:		%{name}-build.patch
-Patch2:		%{name}-crosslink.patch
-Patch3:		%{name}-makefile-linux-x86-32.patch
+Name:     tanukiwrapper
+Version:  3.2.3
+Release:  22%{?dist}
+Summary:  Java Service Wrapper
+Epoch:    0
+License:  BSD
+URL:      http://wrapper.tanukisoftware.org/
+Source0:  https://download.sourceforge.net/wrapper/wrapper_%{version}_src.tar.gz
+Patch1:	  %{name}-build.patch
+Patch2:	  %{name}-crosslink.patch
+Patch3:	  %{name}-makefile-linux-x86-32.patch
 #Add Makefiles so package builds for all FC architectures.
-Patch4:		%{name}-Makefile-s390-s390x-ppc.patch
-Patch5:         %{name}-Makefile-sparc-sparc64.patch
+Patch4:	  %{name}-Makefile-s390-s390x-ppc.patch
+Patch5:   %{name}-Makefile-sparc-sparc64.patch
 # The following patch is only needed for GCJ.
-Patch6:		%{name}-nosun-jvm-64.patch
-Patch7:     %{name}-compilewithfpic.patch
-Patch8:         %{name}-Makefile-linux-arm-32.patch
-Patch9:         %{name}-gcc711.patch
-%if 0%{?fedora} >= 29
+Patch6:	  %{name}-nosun-jvm-64.patch
+Patch7:   %{name}-compilewithfpic.patch
+Patch8:   %{name}-Makefile-linux-arm-32.patch
+Patch9:   %{name}-gcc711.patch
+%if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
 BuildRequires: gcc
 %endif
 %if 0%{?fedora} >= 20 || 0%{?rhel} >= 7
@@ -69,6 +69,7 @@ Requires:       jpackage-utils >= 0:1.6
 %endif
 BuildRequires: java-1.8.0-openjdk-devel
 BuildRequires:	glibc-devel
+BuildRequires:  make
 BuildRequires:	ant >= 0:1.6.1
 BuildRequires:	ant-junit
 BuildRequires:	xerces-j2
@@ -76,12 +77,6 @@ BuildRequires:	xml-commons-apis
 BuildRequires:	%{__perl}
 BuildRequires:	java-javadoc
 Obsoletes:	%{name}-demo < 0:3.1.2-2jpp
-
-%if 0%{?rhel} == 8
-BuildRequires:	xerces-j2 < 2.11.0-34.module_el8.0.0+42
-BuildRequires:	xml-commons-apis < 1.4.01-25.module_el8.0.0+42
-BuildRequires:	ant < 1.10.5-1.module_el8.0.0+47
-%endif
 
 %if %{gcj_support}
 BuildRequires:		java-gcj-compat-devel
