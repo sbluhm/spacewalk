@@ -488,7 +488,7 @@ ant -Dprefix=$RPM_BUILD_ROOT install-tomcat
 install -d -m 755 $RPM_BUILD_ROOT%{_sysconfdir}/tomcat/Catalina/localhost/
 
 # Need to use 2 versions of rhn.xml, Tomcat 8 changed syntax
-%if 0%{?fedora} >= 23
+%if 0%{?fedora} >= 23 || 0%{?rhel} >= 8
 install -m 644 conf/rhn-tomcat8.xml $RPM_BUILD_ROOT%{_sysconfdir}/tomcat/Catalina/localhost/rhn.xml
 %else
 install -m 644 conf/rhn-tomcat5.xml $RPM_BUILD_ROOT%{_sysconfdir}/tomcat/Catalina/localhost/rhn.xml
