@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Copyright (c) 2015--2016 Red Hat, Inc.
 #
@@ -97,14 +97,14 @@ def check_source_match(sources1, sources2):
         elif sources2[i] != s:
            different.append(i)
 
-    print " MISSING KEYS:"
+    print (" MISSING KEYS:")
     for i in missing:
-        print "      %s: %s" % (i.encode("utf-8"), sources1[i].encode("utf-8"))
+        print ("      %s: %s" % (i.encode("utf-8"), sources1[i].encode("utf-8")))
 
-    print " DIFFERENT KEYS:"
+    print (" DIFFERENT KEYS:")
     for i in different:
-        print "  en: %s: %s" % (i.encode("utf-8"), sources1[i].encode("utf-8"))
-        print "lang: %s: %s" % (i.encode("utf-8"), sources2[i].encode("utf-8"))
+        print ("  en: %s: %s" % (i.encode("utf-8"), sources1[i].encode("utf-8")))
+        print ("lang: %s: %s" % (i.encode("utf-8"), sources2[i].encode("utf-8")))
 
     return missing, different
 
@@ -122,10 +122,10 @@ def process_one_lang_file(lang, src, dest):
     prog = re.compile('(<trans-unit id=".*">)\n(\s*)(<source>.*</source>)\n(\s+<context-group name=".*">.*</context-group>\n)?(\s*)(</trans-unit>)', re.S)
     for i in en_id_list:
         if not lang_sources.has_key(i):
-            print " MISSING KEY: %s" % i
+            print (" MISSING KEY: %s" % i)
             continue
         if not lang_targets.has_key(i):
-            print " NOT TRANSLATED: %s" % i
+            print (" NOT TRANSLATED: %s" % i)
             continue
         en_unit = en_units[i].toxml().replace('&quot;','"')
         if en_unit.find('<target>') > -1:
@@ -161,13 +161,13 @@ def parse(lang, in_dir, new_dir):
     #           as a template with translated strings added from fn_lang
     fn_lang = "%s/StringResource_%s.xml" % (in_dir, lang)
     if not os.path.isfile(fn_lang):
-      print "No file %s - exiting..." % fn_lang
+      print ("No file %s - exiting..." % fn_lang)
       return
 
     fn_en   = "%s/StringResource_en_US.xml" % in_dir
     fn_new  = "%s/StringResource_%s.xml.new" % (new_dir, lang)
 
-    print "EN vs. %s:"  % lang
+    print ("EN vs. %s:"  % lang)
     outstr = process_one_lang_file(lang, fn_en, fn_lang)
     write_new_file(fn_new, outstr)
 

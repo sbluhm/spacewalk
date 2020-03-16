@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 # copied from fedora releng git
 # modified by Dennis Gilmore for spacewalk needs.
@@ -70,9 +70,9 @@ class CliTool(AbstractTool):
 
     def print_msg(self, msg):
         if self.options.show_time:
-            print "%s %s" % (time.asctime(), msg)
+            print ("%s %s" % (time.asctime(), msg))
         else:
-            print msg
+            print (msg)
 
 
     def print_verbose(self, msg):
@@ -181,7 +181,7 @@ class CliTool(AbstractTool):
 
 
     def cmd_default(self):
-        print self.help_default()
+        print (self.help_default())
         sys.exit(1)
 
 
@@ -236,7 +236,7 @@ class CliTool(AbstractTool):
             help  = self.run_help(cmd)
             usage = self.run_usage(cmd)
             result += "%s %-21s %-45s %-30s\n" % (commands[cmd], cmd.replace('_', '-'), usage, help)
-        print result
+        print (result)
 
 
 
@@ -488,7 +488,7 @@ class SignUnsigned(CliTool, KojiTool):
 
             for rpm, result in zip(rpmlist, results):
                 if isinstance(result, dict):
-                    print "Error writing out %s" % self.rpm_nvra(rpm)
+                    print ("Error writing out %s" % self.rpm_nvra(rpm))
 
     def write_sig(self, rpminfo, sigkey):
         x = os.path.join(koji.pathinfo.build(rpminfo['build']),
@@ -500,7 +500,7 @@ class SignUnsigned(CliTool, KojiTool):
             self.print_debug("Writing %s" % x)
             try:
                 self.koji_session.writeSignedRPM(rpminfo, sigkey)
-            except koji.KojiError, e:
+            except koji.KojiError as e:
                 self.print_msg(e)
 
     def import_sig(self, rpminfo, sighdr, sigkey):
@@ -587,7 +587,7 @@ class SignUnsigned(CliTool, KojiTool):
          if server:
               ssid = self.gpg_keys[keyid].get('signing_server_id')
               if not ssid:
-                   raise RuntimeError, "%s is not set up for the signing server" % key
+                   raise (RuntimeError, "%s is not set up for the signing server" % key)
               cmd = "rpm-sign --key=%s %s" % (ssid, ' '.join(paths))
          else:
               if self.gpg_keys[keyid]['size'] == 4096:

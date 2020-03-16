@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Copyright (c) 2016 Red Hat, Inc.
 #
@@ -79,27 +79,27 @@ def checkSourceMatch(source, target, targetFn):
             missingSource.append(entry)
 
     if missingTarget or missingSource:
-        print "ERROR - %s:" % targetFn
-        print "  ENTRIES IN SOURCE:"
-        print "    %d" % len(source)
+        print ("ERROR - %s:" % targetFn)
+        print ("  ENTRIES IN SOURCE:")
+        print ("    %d" % len(source))
 
-        print "  ENTRIES IN TARGET:"
-        print "    %d, %d untranslated" % (len(target), len(target.untranslated_entries()))
+        print ("  ENTRIES IN TARGET:")
+        print ("    %d, %d untranslated" % (len(target), len(target.untranslated_entries())))
 
-        print "  MISSING KEYS IN SOURCE: %d" % len(missingSource)
+        print ("  MISSING KEYS IN SOURCE: %d" % len(missingSource))
         for i in missingSource:
             msgid = i.msgid.encode("utf-8").encode('string_escape')[:90]
-            print "    %s" % msgid
-            print "  --"
+            print ("    %s" % msgid)
+            print ("  --")
 
-        print "  MISSING KEYS IN TARGET: %d" % len(missingTarget)
+        print ("  MISSING KEYS IN TARGET: %d" % len(missingTarget))
         for i in missingTarget:
             msgid = i.msgid.encode("utf-8").encode('string_escape')[:90]
-            print "    %s" % msgid
-            print "  --"
+            print ("    %s" % msgid)
+            print ("  --")
         return False
     else:
-        print "OK - %s" % targetFn
+        print ("OK - %s" % targetFn)
         return True
 
 # Create a new version of localized file based on src en_US template and dest <LANG>
@@ -115,7 +115,7 @@ def processOneLangFile(templateFn, langFn, newFn):
     try:
         repo.index.checkout(langFn, force=True)
     except git.exc.CheckoutError as e:
-        print "%s: git.exc.CheckoutError" % langFn
+        print ("%s: git.exc.CheckoutError" % langFn)
         return
 
     # Load currend HEAD version of translation file
@@ -142,7 +142,7 @@ def parse(lang, inDir, newDir):
 
     langFn = "%s/%s.po" % (inDir, lang)
     if not os.path.isfile(langFn):
-      print "OK - %s - not found." % langFn
+      print ("OK - %s - not found." % langFn)
       return
 
     newFn = "%s/%s.po.new" % (newDir, lang)
