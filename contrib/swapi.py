@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 #
 # Like utils/spacewalk-api, call Spacewalk/RHN RPC API from command line.
 #
@@ -244,7 +244,7 @@ class Cache(object):
         """
         cache_dir = self.dir(obj)
         if not os.path.isdir(cache_dir):
-            os.makedirs(cache_dir, mode=0700)
+            os.makedirs(cache_dir, mode=0o700)
 
         cache_path = self.path(obj)
 
@@ -341,8 +341,8 @@ class RpcApi(object):
 
             return ret
 
-        except xmlrpclib.Fault, m:
-            raise RuntimeError("rpc: method '%s', args '%s'\nError message: %s" % (method_name, str(args), m)), None, sys.exc_info()[2]
+        except xmlrpclib.Fault as m:
+            raise (RuntimeError("rpc: method '%s', args '%s'\nError message: %s" % (method_name, str(args), m)), None, sys.exc_info()[2])
 
     def multicall(self, method_name, argsets):
         """Quick hack to implement XML-RPC's multicall like function.

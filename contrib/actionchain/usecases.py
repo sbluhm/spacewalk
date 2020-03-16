@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 
 import xmlrpclib
@@ -48,14 +48,14 @@ class ScenarioRunner(SMConnect):
         if not server:
             return
 
-        print server
+        print (server)
 
         # You are already able to search for the packages
         for pkg in self.findInstalledPackagesByName(server['id'], "yum"):
-            print pkg.get("name")
+            print (pkg.get("name"))
 
         # Therefore you also want to use the API in the same way
-        print self.client.actionchains.addPackageUpgrade(
+        print (self.client.actionchains.addPackageUpgrade(
             self.token, 1000010000,
             [
                 {
@@ -72,7 +72,7 @@ class ScenarioRunner(SMConnect):
                     "release" : "6.el6",
                     },
                 ],
-            "My Great Chain")
+            "My Great Chain"))
 
     def example_02(self):
         """
@@ -80,11 +80,11 @@ class ScenarioRunner(SMConnect):
         """
         # List all action chains, available to the current user
         for chain in self.client.actionchains.listChains(self.token):
-            print "Chain:", chain
+            print ("Chain:", chain)
 
             # Print the details (raw hash)
             for data in self.client.actionchains.chainActions(self.token, chain.get("name")):
-                print "\t", data
+                print ("\t", data)
 
     def example_03(self):
         """
@@ -102,23 +102,23 @@ class ScenarioRunner(SMConnect):
 
         # Test Chain must be there
         for chain in self.client.actionchains.listChains():
-            print "Chain:", chain.get("name")
+            print ("Chain:", chain.get("name"))
 
         # List actions
         for data in self.client.actionchains.chainActions("Test Chain"):
-            print "\t", data
+            print ("\t", data)
 
         self.client.actionchains.removeActions("Test Chain", ["Package Install"])
 
         # List actions (should be empty)
-        print "After deletion:", self.client.actionchains.chainActions("Test Chain")
+        print ("After deletion:", self.client.actionchains.chainActions("Test Chain"))
 
         # Remove the chain itself:
         self.client.actionchains.removeChains(["Test Chain",])
 
         # Test Chain must be no longer there
         for chain in self.client.actionchains.listChains():
-            print "Chain:", chain.get("name")
+            print ("Chain:", chain.get("name"))
 
 
     def example_04(self):
