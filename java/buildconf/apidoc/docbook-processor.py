@@ -15,10 +15,10 @@ import sys
 
 def print_header():
 
-    print '=================================================='
-    print 'API Documentation Section Processor               '
-    print '=================================================='
-    print ''
+    print ('==================================================')
+    print ('API Documentation Section Processor               ')
+    print ('==================================================')
+    print ('')
 
 
 # Start of main routine
@@ -42,7 +42,7 @@ for dir_name, sub_dir_list, file_list in os.walk('.'):
 
         if file_name.endswith('xml'):
 
-            print file_name
+            print (file_name)
 
             lines = open(os.path.abspath(dir_name) + "/" + file_name,'r').read()
 
