@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # groupSummary.py - Prints out summary of groups in RHN
 # Copyright (C) 2007 NC State University
@@ -25,9 +25,9 @@ from rhnapi import RHNClient
 rhn = RHNClient("https://rhn.linux.ncsu.edu/rpc/api")
 rhn.connect()
 
-print "RHN API Version: %s" % rhn.server.api.system_version()
+print ("RHN API Version: %s" % rhn.server.api.system_version())
 
-print "Session ID = %s" % rhn.session
+print ("Session ID = %s" % rhn.session)
 
 s = rhn.server
 
@@ -58,11 +58,11 @@ for system in systems:
 
 # Print out the group_tally nicely
 for key in group_tally.keys():
-    print "%s: %s" % (key, group_tally[key])
+    print ("%s: %s" % (key, group_tally[key]))
 
-print "Ungrouped Systems:"
+print ("Ungrouped Systems:")
 for system in ungrouped:
-    print "   %s" % system["name"]
+    print ("   %s" % system["name"])
 
-print "Total Systems: " + str(c)
+print ("Total Systems: " + str(c))
 

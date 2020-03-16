@@ -6,7 +6,7 @@ testuser = "admin"
 testpass = "redhat"
 
 token = remote.login(testuser,testpass)
-print token
+print (token)
 # rc = remote.test(token)
 # print "test result: %s" % rc
 

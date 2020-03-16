@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import re
 import os
@@ -43,11 +43,11 @@ def main():
     file_tags = {}
     os.path.walk('modules/sniglets', find_pxt_tags_in_dir, file_tags)
 
-    print "Module\tTag\tSubroutine"
+    print ("Module\tTag\tSubroutine")
     for key, value in file_tags.iteritems():
         for tag in value:
             if not tag_is_used(tag[0]):
-                print "%s\t%s\t%s" % (key, tag[0], tag[1])
+                print ("%s\t%s\t%s" % (key, tag[0], tag[1]))
 
 if __name__ == "__main__":
     main()

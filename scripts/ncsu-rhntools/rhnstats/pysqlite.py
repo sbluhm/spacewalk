@@ -83,7 +83,7 @@ class PySqliteDB(object):
         if self.conn == None:
             try:
                 self.conn = sqlite.connect(db=self.db_file)
-            except Exception, e:
+            except Exception as e:
                 log("Exception raised in sqlite.connect()", MANDATORY)
                 raise
 

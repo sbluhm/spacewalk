@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # rhnstats.py - Generate db/web/csv statistics for RHN usage.
 # Copyright (C) 2007 NC State University
@@ -73,7 +73,7 @@ def main():
         populate(db, rhn)
 
     if opts.csv:
-        print "Writing CSV file..."
+        print ("Writing CSV file...")
         doCSV(db)
     else:
         doHTML(db)

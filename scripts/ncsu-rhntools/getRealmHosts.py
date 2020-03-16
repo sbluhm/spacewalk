@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # getRealmHosts.py - Suck a list of hosts out of the RLMTools database
 # Copyright (C) 2007 NC State University
@@ -35,7 +35,7 @@ cursor.execute("select hostname from realmlinux")
 l = []
 
 for row in cursor.fetchall():
-    print row[0]
+    print (row[0])
     l.append(row[0])
 
 s = pickle.dumps(l)
@@ -43,5 +43,5 @@ fd = open("hosts.pic", "w")
 fd.write(s)
 fd.close()
 
-print len(l)
+print (len(l))
 

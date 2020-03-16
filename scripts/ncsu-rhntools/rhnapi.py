@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # rhnapi.py - A simple connector for the RHN XMLRPC API
 # Copyright (C) 2007 NC State University
