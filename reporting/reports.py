@@ -30,7 +30,7 @@ class report:
                 try:
                         fd = open(full_path, 'r')
                 except (IOError):
-                        raise spacewalk_unknown_report, None, sys.exc_info()[2]
+                        raise (spacewalk_unknown_report, None, sys.exc_info()[2])
                 tag = None
                 value = ''
                 re_comment = re.compile('^\s*#')
