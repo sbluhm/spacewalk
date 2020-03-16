@@ -16,15 +16,15 @@ def main():
 
     try:
         run_test(server_name, server_port, ca_cert)
-    except SSL.SSL.Error, e:
+    except SSL.SSL.Error as e:
         if e[0][0][2] == 'certificate verify failed':
-            print "test PASSES"
+            print ("test PASSES")
             return 0
 
-        print "Test failed for unknown reasons:", e
+        print ("Test failed for unknown reasons:", e)
         return 1
 
-    print "Connection did not fail, test FAILS"
+    print ("Connection did not fail, test FAILS")
     return 1
 
 def run_test(server_name, server_port, ca_cert):

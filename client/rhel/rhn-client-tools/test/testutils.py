@@ -24,7 +24,7 @@ def createDbDir():
         shutil.rmtree(DBPATH)
     except OSError:
         #whatever...
-        print "%s doesnt exist, creating it" % DBPATH
+        print ("%s doesnt exist, creating it" % DBPATH)
         pass
 
     # make the new
@@ -37,7 +37,7 @@ def createRepackageDir():
         shutil.rmtree(REPACKAGEDIR)
     except OSError:
         #whatever...
-        print "%s doesnt exist, creating it" % REPACKAGEDIR
+        print ("%s doesnt exist, creating it" % REPACKAGEDIR)
         pass
 
     # make the new
@@ -84,7 +84,7 @@ def rebuildRpmDatabase(dbname):
     createDbDir()
 
     if lookForDbCache(dbname):
-        print "Rebuilding rpm database"
+        print ("Rebuilding rpm database")
         shutil.copy("%s/%s/Packages" % (DBDIR,dbname) , DBPATH)
         cmdline = "rpm -v --dbpath %s  --rebuilddb" % DBPATH
         fd = os.popen(cmdline)
@@ -163,31 +163,31 @@ def logFailures(name):
     fd.close()
 
 def runTestcase(testcase):
-    print "Generating an rpm db in %s based on %s" % (DBPATH, "%s/%s" % (DBDIR,testcase.dbname))
+    print ("Generating an rpm db in %s based on %s" % (DBPATH, "%s/%s" % (DBDIR,testcase.dbname)))
     rebuildRpmDatabase(testcase.dbname)
     cmd = buildUp2dateCommand(testcase.options)
     beforeList = getRpmQAList()
     storeResults(beforeList, testcase.name, "pre")
     setupConfig(testcase.configs)
-    print "running up2date as:\n%s" % cmd
+    print ("running up2date as:\n%s" % cmd)
     up2dateOut = runUp2date(cmd)
     saveUp2dateOut(up2dateOut,testcase.name)
     afterList = getRpmQAList()
     storeResults(afterList, testcase.name, "after")
-    print "diff between before/after"
+    print ("diff between before/after")
     compareBeforeAfter(beforeList, afterList)
-    print "diff between results and expected results"
+    print ("diff between results and expected results")
     try:
         ret = compareResults(testcase.results, afterList)
     except "NoResultsError":
-        print "\n\nNo results listing (%s) was found for this test (%s)\n\n" % (testcase.results, testcase.name)
+        print ("\n\nNo results listing (%s) was found for this test (%s)\n\n" % (testcase.results, testcase.name))
         ret = 1
-    print ret
+    print (ret)
     if ret:
-        print "\n----------- This Case (%s) Failed --------------" % testcase.name
-        print "cmd"
-        print "dbname: %s results: %s" % (testcase.dbname, testcase.results)
-        print "\n\n"
+        print ("\n----------- This Case (%s) Failed --------------" % testcase.name)
+        print ("cmd")
+        print ("dbname: %s results: %s" % (testcase.dbname, testcase.results))
+        print ("\n\n")
         logFailures(testcase.name)
 #    restoreConfig()
 
@@ -208,8 +208,8 @@ def compareBeforeAfter(before, after):
 #    print before
 #    print after
     deleted, added = difflists(before, after)
-    print "added: %s" % added
-    print "deleted: %s" % deleted
+    print ("added: %s" % added)
+    print ("deleted: %s" % deleted)
 
 
 def compareResults(resultsName, afterList):
@@ -225,8 +225,8 @@ def compareResults(resultsName, afterList):
     expected = tmp
     afterList.sort()
     deleted, added = difflists(afterList, expected)
-    print "epected but not found: %s" % added
-    print "not expected, but found: %s" % deleted
+    print ("epected but not found: %s" % added)
+    print ("not expected, but found: %s" % deleted)
     if len(deleted) == 0 and len(added) == 0:
         return 0
     else:
@@ -289,10 +289,10 @@ def main():
             filename = val
         if opt == "--list" or opt == "-l":
             printlist = 1
-            print "Available test cases include:"
-            print testcasenames
+            print ("Available test cases include:")
+            print (testcasenames)
             for i in testcasenames:
-                print "%s" % i
+                print ("%s" % i)
 
     #testcasename = args
 
@@ -301,9 +301,9 @@ def main():
     #print testcases
 
     if printlist:
-        print "Available test cases include:"
+        print ("Available test cases include:")
         for i in testcasenames:
-            print "%s" % i
+            print ("%s" % i)
         sys.exit()
 
     createDataDirs()
@@ -326,10 +326,10 @@ def main():
         matchedtestcases.sort()
 
         for testcase in matchedtestcases:
-            print "going to run testcases: %s" % testcase
+            print ("going to run testcases: %s" % testcase)
 
         for testcase in matchedtestcases:
-            print "running testcase: %s" % testcase
+            print ("running testcase: %s" % testcase)
             runTestcase(testcases[testcasenames.index(testcase)])
 
     if not testcasenames:

@@ -35,9 +35,9 @@ package_name = "%s-%s-%s.%s.rpm" % (pn, pv, pr, pa)
 fd = gs.getPackage(channel_name, package_name, offset=1023)
 #, amount=10)
 
-print gs.get_response_headers()
-print "Status", gs.get_response_status()
-print "Reason", gs.get_response_reason()
+print (gs.get_response_headers())
+print ("Status", gs.get_response_status())
+print ("Reason", gs.get_response_reason())
 h = gs.get_content_range()
-print h
+print (h)
 assert(h['first_byte_pos'] == 1023, h['first_byte_pos'])

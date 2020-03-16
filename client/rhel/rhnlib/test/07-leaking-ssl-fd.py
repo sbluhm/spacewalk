@@ -49,7 +49,7 @@ class makeAttempts(Thread):
             pn = self.get_package_name(p)
             try:
                 fd = gs.getPackageHeader(c[0], pn)
-            except Exception, e:
+            except Exception as e:
                 if (str(e) == "(4, 'Interrupted system call')"):
                     pass
                     continue;
@@ -58,7 +58,7 @@ class makeAttempts(Thread):
 
             buffer = fd.read()
             assert len(buffer) != 0
-            print "Called %4d; header length: %-6d for %s" % (i, len(buffer), pn)
+            print ("Called %4d; header length: %-6d for %s" % (i, len(buffer), pn))
             i = i + 1
             pi = pi + 1
 
@@ -79,7 +79,7 @@ class makeAttempts(Thread):
 import time;
 
 if __name__ == '__main__':
-    print "PID:", os.getpid()
+    print ("PID:", os.getpid())
 
     attempt = makeAttempts();
     attempt.start();
@@ -93,14 +93,14 @@ if __name__ == '__main__':
         if (res80 == 0):        # Port 80 is used ERROR
             attemt.terminate();
             attempt.join();
-            print "ERROR: Port 80 is used!"
+            print ("ERROR: Port 80 is used!")
             sys.exit(1);
 
         res443 = os.system(port443)
         if (res443 == 0):       # Port 443 is used ok
             attempt.terminate();
             attempt.join();
-            print "OK"
+            print ("OK")
             sys.exit(0);
 
     attempt.join();

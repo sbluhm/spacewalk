@@ -96,7 +96,7 @@ class YumAction(yum.YumBase):
                 errors = yum.misc.unique(problems[key])
                 for error in errors:
                     errstring += '  %s: %s\n' % (key, error)
-            raise yum.Errors.YumBaseError, errstring
+            raise (yum.Errors.YumBaseError, errstring)
 
         if self.cfg['retrieveOnly']:
             # We are configured to only download packages (rather than install/update)
@@ -113,7 +113,7 @@ class YumAction(yum.YumBase):
             if downloadpkgs and do_erase: # FAIL
                 err = 'Mix of install/erase and "retrieveOnly" set - transaction FAILS'
                 log.log_debug(err)
-                raise yumErrors.YumBaseError, err
+                raise (yumErrors.YumBaseError, err)
             elif downloadpkgs and not do_erase: # download and exit
                 log.log_debug('Configured to "retrieveOnly" so skipping package install')
                 return 0
@@ -151,7 +151,7 @@ class YumAction(yum.YumBase):
             for descr in tserrors:
                 errstring += '  %s\n' % descr
 
-            raise yum.Errors.YumBaseError, errstring
+            raise (yum.Errors.YumBaseError, errstring)
         log.log_debug('Transaction Test Succeeded')
         del self.ts
 
@@ -193,12 +193,12 @@ class YumAction(yum.YumBase):
                     log.log_debug("GPG key import was good.")
                     # if we got here, the key worked, otherwise an exception is thrown
                 else:
-                    raise yum.Errors.YumBaseError, \
-                            'Refusing to automatically import keys when running ' \
-                            'unattended.'
+                    raise (yum.Errors.YumBaseError,
+                            'Refusing to automatically import keys when running '
+                            'unattended.')
             else:
                 # Fatal error
-                raise yum.Errors.YumBaseError, errmsg
+                raise (yum.Errors.YumBaseError, errmsg)
 
         return 0
 
@@ -275,10 +275,10 @@ class YumAction(yum.YumBase):
                      epoch=pkgkeys['epoch'], arch=pkgkeys['arch'],
                      ver=pkgkeys['version'], rel=pkgkeys['release'])
                 if not pkgs:
-                    raise yum.Errors.YumBaseError, \
-                        "Cannot find package %s:%s-%s-%s.%s in any of enabled repositories." \
+                    raise (yum.Errors.YumBaseError,
+                        "Cannot find package %s:%s-%s-%s.%s in any of enabled repositories."
                         % (pkgkeys['epoch'], pkgkeys['name'], pkgkeys['version'],
-                            pkgkeys['release'], pkgkeys['arch'])
+                            pkgkeys['release'], pkgkeys['arch']))
                 for po in pkgs:
                      self.tsInfo.addInstall(po)
             elif action == 'e':
@@ -515,14 +515,14 @@ def _run_yum_action(command, cache_only=None):
             oldcount = len(yum_base.tsInfo)
             command.execute(yum_base)
             if not len(yum_base.tsInfo) > oldcount:
-                raise yum.Errors.YumBaseError, 'empty transaction'
+                raise (yum.Errors.YumBaseError, 'empty transaction')
             # depSolving stage
             (result, resultmsgs) = yum_base.buildTransaction()
             if result == 1:
                 # Fatal Error
                 for msg in resultmsgs:
                     log.log_debug('Error: %s' % msg)
-                raise yum.Errors.DepError, resultmsgs
+                raise (yum.Errors.DepError, resultmsgs)
             elif result == 0 or result == 2:
                 # Continue on
                 pass
@@ -530,7 +530,7 @@ def _run_yum_action(command, cache_only=None):
                 # Unknown Error
                 for msg in resultmsgs:
                     log.log_debug('Error: %s' % msg)
-                raise yum.Errors.YumBaseError, resultmsgs
+                raise (yum.Errors.YumBaseError, resultmsgs)
 
             log.log_debug("Dependencies Resolved")
             yum_base.cache_only=cache_only
@@ -540,26 +540,26 @@ def _run_yum_action(command, cache_only=None):
             yum_base.closeRpmDB()
             yum_base.doUnlock(YUM_PID_FILE)
 
-    except (yum.Errors.InstallError, yum.Errors.UpdateError), e:
+    except (yum.Errors.InstallError, yum.Errors.UpdateError) as e:
         data = {}
         data['version'] = "1"
         data['name'] = "package_install_failure"
 
         return (32, u"Failed: Packages failed to install "\
                 "properly: %s" % unicode(e), data)
-    except yum.Errors.RemoveError, e:
+    except yum.Errors.RemoveError as e:
         data = {}
         data['version'] = 0
         data['name'] = "rpmremoveerrors"
 
         return (15, u"%s" % unicode(e), data)
-    except yum.Errors.DepError, e:
+    except yum.Errors.DepError as e:
         data = {}
         data["version"] = "1"
         data["name"] = "failed_deps"
         return (18, u"Failed: packages requested raised "\
                 "dependency problems: %s" % unicode(e), data)
-    except (yum.Errors.YumBaseError, PluginYumExit), e:
+    except (yum.Errors.YumBaseError, PluginYumExit) as e:
         status = 6,
         message = u"Error while executing packages action: %s" % unicode(e)
         data = {}
@@ -621,7 +621,7 @@ def refresh_list(rhnsd=None, cache_only=None):
     try:
         rhnPackageInfo.updatePackageProfile()
     except:
-        print "ERROR: refreshing remote package list for System Profile"
+        print ("ERROR: refreshing remote package list for System Profile")
         return (20, "Error refreshing package list", {})
 
     touch_time_stamp()

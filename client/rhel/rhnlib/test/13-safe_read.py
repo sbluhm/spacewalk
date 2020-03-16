@@ -34,16 +34,16 @@ def t():
     amt = buf.tell()
 
     buf.seek(0, 0)
-    print "Using temp file"
+    print ("Using temp file")
     f = transports._smart_read(buf, amt)
     f.seek(0, 2)
-    print "Read", f.tell(), type(f._io)
+    print ("Read", f.tell(), type(f._io))
 
     buf.seek(0, 0)
-    print "Reading in memory..."
+    print ("Reading in memory...")
     f = transports._smart_read(buf, amt, max_mem_size=amt+1)
     f.seek(0, 2)
-    print "Read", f.tell(), type(f._io)
+    print ("Read", f.tell(), type(f._io))
 
 
 def openedFiles():
@@ -59,16 +59,16 @@ if __name__ == '__main__':
     failed = False
 
     for i in range(100):
-        print "Running", i
+        print ("Running", i)
         t()
         if openedFiles() != 4:
-            print "FAIL: Opened files = ", openedFiles(), ", but expected: 4!"
+            print ("FAIL: Opened files = ", openedFiles(), ", but expected: 4!")
             failed = True
 
     if failed:
-        print "Test FAILS!"
+        print ("Test FAILS!")
         sys.exit(1);
     else:
-        print "Test PASSES!"
+        print ("Test PASSES!")
         sys.exit(0);
 

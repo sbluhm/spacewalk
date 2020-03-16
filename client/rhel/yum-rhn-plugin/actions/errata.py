@@ -77,7 +77,7 @@ def update(errataidlist, cache_only=None):
 
 
 def main():
-        print update([23423423])
+        print (update([23423423]))
 
 
 if __name__ == "__main__":
