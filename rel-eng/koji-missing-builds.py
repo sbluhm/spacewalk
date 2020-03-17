@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
@@ -21,11 +21,11 @@ parser.add_option("--no-extra", action="store_false", default=True,
 (opts, args) = parser.parse_args()
 
 if len(args) < 1:
-    print "ERROR: need to specify tag to check\n"
+    print ("ERROR: need to specify tag to check\n")
     parser.print_help()
     sys.exit(1)
 if len(args) > 1:
-    print "ERROR: Only one tag at a time.\n"
+    print ("ERROR: Only one tag at a time.\n")
     parser.print_help()
     sys.exit(1)
 
@@ -117,21 +117,21 @@ for pkg in pkgfileList:
 pkglist.sort()
 nvrs.sort()
 if opts.git:
-    print "Builds not in git:"
+    print ("Builds not in git:")
 for pkg in kojinames:
     if not pkg[0] in gitnames:
         if opts.git:
-            print "     %s" % pkg[1]
+            print ("     %s" % pkg[1])
         notingit.append(pkg[1])
 
 if opts.no_extra:
-    print "Extra builds in %s:" % buildsystem
+    print ("Extra builds in %s:" % buildsystem)
     for pkg in nvrs:
         if not pkg in pkglist and not pkg in notingit:
-            print "     %s" % pkg
+            print ("     %s" % pkg)
 
-print "Builds missing in %s:" % buildsystem
+print ("Builds missing in %s:" % buildsystem)
 for pkg in pkglist:
     if not pkg in nvrs:
-        print "     %s" % pkg
+        print ("     %s" % pkg)
 
