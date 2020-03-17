@@ -8,9 +8,9 @@ URL:     https://github.com/spacewalkproject/spacewalk
 %if %{?suse_version: %{suse_version} > 1110} %{!?suse_version:1}
 BuildArch: noarch
 %endif
-%if 0%{?fedora} >= 28 || 0%{?mageia}
-BuildRequires: python2
-BuildRequires: python2-rpm-macros
+%if 0%{?fedora} >= 28 || 0%{?rhel} || 0%{?mageia}
+BuildRequires: python3
+BuildRequires: python3-rpm-macros
 %else
 BuildRequires: python
 %endif
@@ -20,8 +20,8 @@ BuildRequires: gettext
 Requires: yum >= 3.2.19-15
 Requires: rhn-client-tools >= 2.8.4
 Requires: m2crypto >= 0.16-6
-%if 0%{?fedora} >= 28
-Requires: python2-iniparse
+%if 0%{?fedora} >= 28  || 0%{?rhel}
+Requires: python3-iniparse
 %else
 Requires: python-iniparse
 %endif

@@ -44,14 +44,14 @@ class makeAttempts(Thread):
         lp = gs.listPackages(c[0], c[1])
         p = lp[0]
         pn = "%s-%s-%s.%s.rpm" % (p[0], p[1], p[2], p[4])
-        print pn
+        print (pn)
 
         i = 0
         while i < 100 and not self.term: # Make few attempts
             try:
                 fd = gs.getPackageHeader(c[0], pn)
-                print "Called %-4d" % i
-            except Exception, e:
+                print ("Called %-4d" % i)
+            except Exception as e:
                 if (str(e) == "(4, 'Interrupted system call')"):
                     pass
                 else:
@@ -73,7 +73,7 @@ class makeAttempts(Thread):
 
 
 if __name__ == '__main__':
-    print "PID:", os.getpid()
+    print ("PID:", os.getpid())
 
     attempt = makeAttempts();
     attempt.start();
@@ -87,14 +87,14 @@ if __name__ == '__main__':
         if (res80 == 0):        # Port 80 is used ERROR
             attempt.terminate();
             attempt.join();
-            print "ERROR: Port 80 is used!"
+            print ("ERROR: Port 80 is used!")
             sys.exit(1);
 
         res443 = os.system(port443)
         if (res443 == 0):       # Port 443 is used ok
             attempt.terminate();
             attempt.join();
-            print "OK"
+            print ("OK")
             sys.exit(0);
 
     attempt.join();

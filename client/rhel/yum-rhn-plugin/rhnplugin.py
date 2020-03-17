@@ -115,7 +115,7 @@ def init_hook(conduit):
 
     try:
         login_info = up2dateAuth.getLoginInfo(timeout=timeout)
-    except up2dateErrors.RhnServerException, e:
+    except up2dateErrors.RhnServerException as e:
         if hasattr(conduit._base, 'exit_code') and 'check-update' in sys.argv:
             conduit._base.exit_code = 1
         rewordError(e)
@@ -146,7 +146,7 @@ def init_hook(conduit):
                 "\n" + RHN_DISABLED)
         rhn_enabled = False
         return
-    except up2dateErrors.RhnServerException, e:
+    except up2dateErrors.RhnServerException as e:
         if hasattr(conduit._base, 'exit_code') and 'check-update' in sys.argv:
             conduit._base.exit_code = 1
         conduit.error(0, COMMUNICATION_ERROR + "\n" + CHANNELS_DISABLED +
@@ -185,7 +185,7 @@ def openRHNReposCache(conduit):
     cachefilename = os.path.join(cachedir, cachedRHNReposFile)
     try:
         if not os.path.exists(cachedir):
-            os.makedirs(cachedir, 0755)
+            os.makedirs(cachedir, 0o755)
         cachefile = open(cachefilename, 'w')
     except:
         cachefile = None
@@ -234,7 +234,7 @@ def currentRHNRepoVersion(repo, repoversion):
     versionfile = None
     try:
         if not os.path.exists(cachedir):
-            os.makedirs(cachedir, 0755)
+            os.makedirs(cachedir, 0o755)
         if os.path.exists(versionfilename):
             versionfile = open(versionfilename, 'r+')
             last_version = versionfile.readline().strip('\n')
@@ -262,7 +262,7 @@ def posttrans_hook(conduit):
         if up2dateAuth.getSystemId(): # are we registred?
             try:
                 rhnPackageInfo.updatePackageProfile(timeout=timeout)
-            except up2dateErrors.RhnServerException, e:
+            except up2dateErrors.RhnServerException as e:
                 conduit.error(0, COMMUNICATION_ERROR + "\n" +
                     _("Package profile information could not be sent.") + "\n" +
                     unicode(e))
@@ -344,8 +344,8 @@ class RhnRepo(YumRepository):
 
         try:
             li = up2dateAuth.getLoginInfo(timeout=self.timeout)
-        except Exception, e:
-            raise yum.Errors.RepoError(unicode(e)), None, sys.exc_info()[2]
+        except Exception as e:
+            raise (yum.Errors.RepoError(unicode(e)), None, sys.exc_info()[2])
 
         # TODO:  do evalution on li auth times to see if we need to obtain a
         # new session...
@@ -368,23 +368,23 @@ class RhnRepo(YumRepository):
             try:
                 return self._noExceptionWrappingGet(url, relative, local,
                     start, end, copy_local, checkfunc, text, reget, cache, size)
-            except URLGrabError, e:
+            except URLGrabError as e:
                 try:
                     up2dateAuth.updateLoginInfo(timeout=self.timeout)
-                except up2dateErrors.RhnServerException, e:
-                    raise yum.Errors.RepoError(unicode(e)), None, sys.exc_info()[2]
+                except up2dateErrors.RhnServerException as e:
+                    raise (yum.Errors.RepoError(unicode(e)), None, sys.exc_info()[2])
 
                 return self._noExceptionWrappingGet(url, relative, local,
                     start, end, copy_local, checkfunc, text, reget, cache, size)
 
-        except URLGrabError, e:
-            raise yum.Errors.RepoError, \
+        except URLGrabError as e:
+            raise (yum.Errors.RepoError,
                 "failed to retrieve %s from %s\nerror was %s" % (relative,
-                self.id, e), sys.exc_info()[2]
-        except SSLError, e:
-            raise yum.Errors.RepoError(unicode(e)), None, sys.exc_info()[2]
-        except up2dateErrors.InvalidRedirectionError, e:
-            raise up2dateErrors.InvalidRedirectionError(e), None, sys.exc_info()[2]
+                self.id, e), sys.exc_info()[2])
+        except SSLError as e:
+            raise (yum.Errors.RepoError(unicode(e)), None, sys.exc_info()[2])
+        except up2dateErrors.InvalidRedirectionError as e:
+            raise (up2dateErrors.InvalidRedirectionError(e), None, sys.exc_info()[2])
     _YumRepository__get = _getFile
 
     # This code is copied from yum, we should get the original code to
@@ -418,8 +418,8 @@ class RhnRepo(YumRepository):
         headers = tuple(headers)
 
         if local is None or relative is None:
-            raise yum.Errors.RepoError, \
-                  "get request for Repo %s, gave no source or dest" % self.id
+            raise (yum.Errors.RepoError,
+                  "get request for Repo %s, gave no source or dest" % self.id)
 
         if self.failure_obj:
             (f_func, f_args, f_kwargs) = self.failure_obj
@@ -430,9 +430,9 @@ class RhnRepo(YumRepository):
                 return local          # to run the checkfunc from here
 
             else: # ain't there - raise
-                raise yum.Errors.RepoError, \
+                raise (yum.Errors.RepoError,
                     "Caching enabled but no local cache of %s from %s" % (local,
-                           self)
+                           self))
 
         if url is not None:
             remote = url + '/' + relative
@@ -474,7 +474,7 @@ class RhnRepo(YumRepository):
                     kwargs['retry_no_cache'] = self._retry_no_cache
                 result = self.grab.urlgrab(remote, local, **kwargs)
                 return result
-            except URLGrabError, e:
+            except URLGrabError as e:
                 urlException = e
                 continue
 

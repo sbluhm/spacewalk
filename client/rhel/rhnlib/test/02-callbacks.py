@@ -14,14 +14,14 @@ try:
     system_id_file = sys.argv[2]
 except:
     pass
-print "SERVER = %s" % SERVER
-print "system_id_file = %s" % system_id_file
+print ("SERVER = %s" % SERVER)
+print ("system_id_file = %s" % system_id_file)
 
 def refreshCallback(*args, **kwargs):
-    print "Called refreshCallback, args %s, kwargs %s" % (args, kwargs)
+    print ("Called refreshCallback, args %s, kwargs %s" % (args, kwargs))
 
 def progressCallback(*args, **kwargs):
-    print "Called progressCallback, args %s, kwargs %s" % (args, kwargs)
+    print ("Called progressCallback, args %s, kwargs %s" % (args, kwargs))
 
 if __name__ == '__main__':
     sysid = open(system_id_file).read()
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     channels = dict['X-RHN-Auth-Channels']
     cn, cv = channels[0][:2]
 
-    print "Calling listPackages"
+    print ("Calling listPackages")
     l = gs.listPackages(cn, cv)
     for p in l:
         if p[0] == 'kernel':
@@ -48,11 +48,11 @@ if __name__ == '__main__':
     else:
         raise Exception("Package not found")
 
-    print "PACKAGE TO DOWNLOAD: %s %s %s %s" % (package[0], package[1], package[2], package[4])
+    print ("PACKAGE TO DOWNLOAD: %s %s %s %s" % (package[0], package[1], package[2], package[4]))
     filename = "%s-%s-%s.%s.rpm" % (package[0], package[1], package[2], package[4])
-    print "Calling getPackages"
+    print ("Calling getPackages")
     fd = gs.getPackage(cn, filename)
     data_name = "/tmp/foobar"
     data = open(data_name, "w+").write(fd.read())
-    print "PACKAGE DOWNLOADED AS: %s" % data_name
+    print ("PACKAGE DOWNLOADED AS: %s" % data_name)
 

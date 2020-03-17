@@ -15,7 +15,7 @@ PROXY = "proxy.example.com:8080"
 system_id_file = '/etc/sysconfig/rhn/systemid'
 
 if len(sys.argv) < 3:
-    print "Non efficient cmd-line arguments! Provide at least server & proxy!"
+    print ("Non efficient cmd-line arguments! Provide at least server & proxy!")
     sys.exit(1);
 try:
     SERVER = sys.argv[1]
@@ -24,9 +24,9 @@ try:
 except:
     pass
 
-print "SERVER = %s" % SERVER
-print "PROXY = %s" % PROXY
-print "system_id_file = %s" % system_id_file
+print ("SERVER = %s" % SERVER)
+print ("PROXY = %s" % PROXY)
+print ("system_id_file = %s" % system_id_file)
 
 def get_test_server_proxy_http():
     global SERVER, HANDLER, PROXY
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     ]
     for gs in tests:
         s = gs()
-        print "--- %s ---" % gs
-        print s.up2date.login(systemid)
+        print ("--- %s ---" % gs)
+        print (s.up2date.login(systemid))
 
 

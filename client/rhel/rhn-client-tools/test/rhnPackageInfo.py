@@ -38,7 +38,7 @@ class TestPprint_pkglist(unittest.TestCase):
         """Verify that pprint_pkglist proper handles a single list (IndexError)"""
         try:
             res = rhnPackageInfo.pprint_pkglist(self.pkgList5)
-            print res
+            print (res)
         except IndexError:
             pass
         else:

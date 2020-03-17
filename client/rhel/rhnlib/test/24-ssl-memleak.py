@@ -35,15 +35,15 @@ def main():
                 mem_usage_VmSize_first = new_mem_usage[1]
             mem_usage = new_mem_usage
 
-            print "memory usage: %s %s %s" % mem_usage[1:4]
+            print ("memory usage: %s %s %s" % mem_usage[1:4])
 
     percent = float((mem_usage_VmSize_max - mem_usage_VmSize_first)) / (float(mem_usage_VmSize_first) / 100)
     if percent >= mem_usage_VmSize_allowed_percent:
         # Failure
-        print "Test FAILS (%s %%)" % percent
+        print ("Test FAILS (%s %%)" % percent)
         return 1
 
-    print "Test PASSES"
+    print ("Test PASSES")
     return 0
 
 def run_test(server_url, ca_cert):

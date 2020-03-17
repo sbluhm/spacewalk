@@ -66,12 +66,12 @@ def authenticate():
     while not connected:
         try:
             connected = True;
-            print s.test.method()
-        except socket.error, e:
+            print (s.test.method())
+        except socket.error as e:
             # nobody is listenning, try to authenticate again
             connected = False;
             pass;
-        except httplib.BadStatusLine, e:
+        except httplib.BadStatusLine as e:
             # This is ok, netcat does not send apropriate response
             pass
 
@@ -81,10 +81,10 @@ def netcat():
     cmd = "nc -l " + PORT + " | grep authorization\:\ Basic\ bG9uZ3VzZXJuYW1lMDEyMzQ1Njc4OTpsb25ncGFzc3dvcmQwMTIzNDU2Nzg5"
     result = os.system(cmd);
     if (result == 0):
-        print "Tests PASSES"
+        print ("Tests PASSES")
     else:
         auth.kill();
-        print "Test FAILS"
+        print ("Test FAILS")
 
 
 if __name__ == '__main__':

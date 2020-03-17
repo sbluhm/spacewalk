@@ -27,7 +27,7 @@ s = get_test_server_https()
 sysid = open(system_id_file).read()
 
 dict = s.up2date.login(sysid)
-print dict
+print (dict)
 
 dict['X-RHN-Auth-Server-Time'] = 1324
 
@@ -37,8 +37,8 @@ channel_name, channel_version = channels[0][:2]
 sg = GETServer("http://xmlrpc.rhn.redhat.com/XMLRPC", headers=dict)
 try:
     l = sg.listPackages(channel_name, channel_version)
-except ProtocolError, e:
-    print reportError(e.headers)
+except ProtocolError as e:
+    print (reportError(e.headers))
     print("OK (error above expected)");
     sys.exit(0);
 print("ERROR: Exception didn't occurred!");

@@ -22,7 +22,7 @@ REFERENCE_XML = {
 REFERENCE_BLOB = "a1b2c3d4e5" * 100
 
 def test_xmlrpc(transfer, encoding):
-    print "\n---> XML Testing transfer=%s, encoding=%s" % (transfer, encoding)
+    print ("\n---> XML Testing transfer=%s, encoding=%s" % (transfer, encoding))
     data = xmlrpclib.dumps((REFERENCE_XML, ), methodresponse=1)
     o = transports.Output(transfer=transfer, encoding=encoding)
     o.set_header('Content-Type', 'text/xml')
@@ -30,7 +30,7 @@ def test_xmlrpc(transfer, encoding):
     headers = o.headers
     # Added by the connection layer
     headers['Content-Length'] = len(o.data)
-    print "Output: headers: %s" % headers.items()
+    print ("Output: headers: %s" % headers.items())
 
     i = transports.Input(headers)
     io = i.decode(StringIO(o.data))
@@ -42,14 +42,14 @@ def test_xmlrpc(transfer, encoding):
     assert(REFERENCE_XML == params[0])
 
 def test_blob(transfer, encoding):
-    print "\n---> BLOB Testing transfer=%s, encoding=%s" % (transfer, encoding)
+    print ("\n---> BLOB Testing transfer=%s, encoding=%s" % (transfer, encoding))
     o = transports.Output(transfer=transfer, encoding=encoding)
     o.set_header('Content-Type', 'application/binary')
     o.process(REFERENCE_BLOB)
     headers = o.headers
     # Added by the connection layer
     headers['Content-Length'] = len(o.data)
-    print "Output: headers: %s" % headers.items()
+    print ("Output: headers: %s" % headers.items())
 
     i = transports.Input(headers)
     io = i.decode(StringIO(o.data))

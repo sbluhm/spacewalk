@@ -1,8 +1,8 @@
-%if (0%{?fedora} && 0%{?fedora} <30) || 0%{?rhel} == 7
+%if (0%{?fedora} && 0%{?fedora} <30) || 0%{?rhel} >= 7
 %{!?pylint_check: %global pylint_check 1}
 %endif
 
-%if 0%{?fedora} || 0%{?rhel} >= 8
+%if 0%{?fedora} || 0%{?rhel} >= 7
 %global build_py3   1
 %endif
 
@@ -32,8 +32,8 @@ Requires: chkconfig
 Requires: libxslt
 Requires: spacewalk-certs-tools >= 1.6.4
 %if 0%{?pylint_check}
-BuildRequires: spacewalk-python2-pylint
-BuildRequires: python2-rhn-client-tools
+BuildRequires: spacewalk-python3-pylint
+BuildRequires: python3-rhn-client-tools
 %endif
 BuildRequires: /usr/bin/docbook2man
 

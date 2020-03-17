@@ -36,7 +36,7 @@ def main():
         systemid_path = sys.argv[1]
     else:
         systemid_path = "/etc/sysconfig/rhn/systemid"
-        print "Using %s as systemid (command line to override)" % systemid_path
+        print ("Using %s as systemid (command line to override)" % systemid_path)
 
     global SYSTEM_ID
     SYSTEM_ID = open(systemid_path).read()
@@ -51,26 +51,26 @@ def run_test(url, allow_redirect, should_fail, text_message):
 
     message = "Running test: %s" % text_message
 
-    print message,
+    print (message,)
 
     s = Server(url)
     s.allow_redirect(allow_redirect)
 
     try:
         s.up2date.login(SYSTEM_ID)
-    except Exception, e:
+    except Exception as e:
         if should_fail and isinstance(e, should_fail):
-            print "PASS"
+            print ("PASS")
             return 0
 
-        print "FAIL (exception: %s)" % (e.__class__.__name__)
+        print ("FAIL (exception: %s)" % (e.__class__.__name__))
         return 1
 
     if should_fail:
-        print "FAIL (no exception)"
+        print ("FAIL (no exception)")
         return 1
 
-    print "PASS"
+    print ("PASS")
     return 0
 
 
