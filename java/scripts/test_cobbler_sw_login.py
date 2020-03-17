@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
 from xmlrpclib import Server
 
@@ -6,7 +6,7 @@ sys.path.append('/usr/share/rhn')
 try:
    from common import initCFG, CFG
 except:
-   print "Couldn't load needed libs, Are you sure you are running this on a satellite?"
+   print ("Couldn't load needed libs, Are you sure you are running this on a satellite?")
    sys.exit(1)
 
 initCFG()

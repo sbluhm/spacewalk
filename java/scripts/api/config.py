@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import xmlrpclib
 import unittest
@@ -6,14 +6,14 @@ import sys
 ##### Configuration #####
 try:
     from sat_config import *
-except ImportError, e:
-    print """ Create a file called sat_config.py
+except ImportError as e:
+    print (""" Create a file called sat_config.py
         anywhere in your python path with the following values
 # Satellite to test against:
 SATELLITE_HOST = "localhost" #no protocol prepending just fqdn
                              #Example "spacewalk.foo.com"
 SATELLITE_LOGIN = "admin"
-SATELLITE_PASSWORD = "redhat" """
+SATELLITE_PASSWORD = "redhat" """)
     sys.exit(0)
 
 SATELLITE_URL = "http://%s/rpc/api" % SATELLITE_HOST

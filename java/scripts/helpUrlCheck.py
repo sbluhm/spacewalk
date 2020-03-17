@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # Scan the given source files for RHN Help URLs and check to see if they're
 # valid on the given satellite.
 
@@ -8,12 +8,12 @@ import urllib2
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print "USAGE: %s <satellite host> <list of filenames>" % sys.argv[0]
-        print "   i.e. %s rlx-3-12.rhndev.redhat.com **/*.jsp" % sys.argv[0]
+        print ("USAGE: %s <satellite host> <list of filenames>" % sys.argv[0])
+        print ("   i.e. %s rlx-3-12.rhndev.redhat.com **/*.jsp" % sys.argv[0])
         sys.exit(0)
 
     satUrl = "http://" + sys.argv[1]
-    print "Checking for valid help URLs on: %s" % satUrl
+    print ("Checking for valid help URLs on: %s" % satUrl)
 
     files = sys.argv[2:]
 
@@ -43,26 +43,26 @@ if __name__ == "__main__":
                 if helpUrl in processedUrls:
                     continue
 
-                print "Checking %s" % helpUrl,
-                processedUrls.append(helpUrl)
+                print ("Checking %s" % helpUrl,
+                processedUrls.append(helpUrl))
                 try:
                     urllib2.urlopen(helpUrl)
-                    print " ok"
-                except Exception, e:
-                    print " BROKEN!"
+                    print (" ok")
+                except Exception as e:
+                    print (" BROKEN!")
                     brokenUrls[helpUrl] = {'files' : [filename], 'error' : e}
 
     if len(brokenUrls) == 0:
-        print "All URLs valid!"
+        print ("All URLs valid!")
     else:
-        print "WARNING: Broken help URLs were found!!!"
+        print ("WARNING: Broken help URLs were found!!!")
         for key in brokenUrls.keys():
-            print "   %s" % key
-            print "      Error: %s" % brokenUrls[key]['error']
-            print "      Files: (note: may include multiple occurrences)"
+            print ("   %s" % key)
+            print ("      Error: %s" % brokenUrls[key]['error'])
+            print ("      Files: (note: may include multiple occurrences)")
             filesProcessed = []
             for filename in brokenUrls[key]['files']:
                 if filename not in filesProcessed:
-                    print "         %s" % filename
+                    print ("         %s" % filename)
                     filesProcessed.append(filename)
 

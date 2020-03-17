@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """
 Script to :
 - create unique channels for given users
@@ -47,12 +47,12 @@ def createChannels(keylist, info):
         label = info['label'] + SUFFIX_HASH[login]
         name  = info['name']  + SUFFIX_HASH[login]
         try:
-            print "Creating Channel: ",label
+            print ("Creating Channel: ",label)
             client.channel.software.create(key, label, name, \
                                     info['summary'], info['archLabel'], \
                                     info['parentLabel'])
-        except xmlrpclib.Fault, e:
-            print e
+        except xmlrpclib.Fault as e:
+            print (e)
         channel_list[login] = label
     return channel_list
 
@@ -61,7 +61,7 @@ def pushContent(users, channels):
      Invoke rhnpush to push packages to channels
     """
     for login,password in users.items():
-        print "Pushing Content to %s" % channels[login]
+        print ("Pushing Content to %s" % channels[login])
         push_cmd = 'rhnpush --server=%s/APP --username=%s --password=%s \
                     --dir=%s --channel=%s -vvvv --tolerant --nosig' % \
                    (SATELLITE_HOST, login, password, PKG_CONTENT_DIR, \
