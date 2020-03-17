@@ -1,10 +1,10 @@
 Summary: An xmlrpc library
 Name: redstone-xmlrpc
 Version: 1.1_20071120 
-Release: 21%{?dist}
+Release: 23%{?dist}
 License: LGPL
 URL: http://xmlrpc.sourceforge.net
-Source0: %{name}-%{version}.tar.gz
+Source0: https://github.com/spacewalkproject/spacewalk/releases/download/%{name}-%{version}-21/%{name}-%{version}.tar.gz
 Patch0: build-classpath.patch
 Patch1: fault_serialization.patch
 Patch2: escaping_string_serialization.path
@@ -56,6 +56,12 @@ install -d -m 755 $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}
 %{_javadir}
 
 %changelog
+* Tue Mar 17 2020 Michael Mraka <michael.mraka@redhat.com> 1.1_20071120-23
+- fixed line separator
+
+* Tue Mar 17 2020 Michael Mraka <michael.mraka@redhat.com> 1.1_20071120-22
+- uploaded source tar to github
+
 * Tue Feb 11 2020 Michael Mraka <michael.mraka@redhat.com> 1.1_20071120-21
 - 1791164 - disable external entity parsing
 

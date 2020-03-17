@@ -19,7 +19,7 @@
 Name: spacewalk-java
 Summary: Java web application files for Spacewalk
 License: GPLv2
-Version: 2.11.2
+Version: 2.11.3
 Release: 1%{?dist}
 URL:       https://github.com/spacewalkproject/spacewalk
 Source0:   https://github.com/spacewalkproject/spacewalk/archive/%{name}-%{version}.tar.gz
@@ -487,11 +487,15 @@ fi
 ant -Dprefix=$RPM_BUILD_ROOT install-tomcat
 install -d -m 755 $RPM_BUILD_ROOT%{_sysconfdir}/tomcat/Catalina/localhost/
 
-# Need to use 2 versions of rhn.xml, Tomcat 8 changed syntax
+# Need to use multiple versions of rhn.xml, Tomcat changed syntax
 %if 0%{?fedora} >= 23
 install -m 644 conf/rhn-tomcat8.xml $RPM_BUILD_ROOT%{_sysconfdir}/tomcat/Catalina/localhost/rhn.xml
 %else
+%if 0%{?rhel} >= 8
+install -m 644 conf/rhn-tomcat9.xml $RPM_BUILD_ROOT%{_sysconfdir}/tomcat/Catalina/localhost/rhn.xml
+%else
 install -m 644 conf/rhn-tomcat5.xml $RPM_BUILD_ROOT%{_sysconfdir}/tomcat/Catalina/localhost/rhn.xml
+%endif
 %endif
 
 %else
@@ -756,6 +760,9 @@ fi
 %{_prefix}/share/rhn/search/lib/postgresql-jdbc.jar
 
 %changelog
+* Tue Mar 17 2020 Michael Mraka <michael.mraka@redhat.com> 2.11.3-1
+- Updated spacewalk-java for RHEL8/Tomcat9
+
 * Wed Mar 11 2020 Stefan Bluhm <stefan.bluhm@clacee.eu> 2.11.1-2
 - Updated cglib name for RHEL8.
 

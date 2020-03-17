@@ -1,10 +1,10 @@
 Name:		simple-core		
 Version:	3.1.3
-Release:	10%{?dist}
+Release:	11%{?dist}
 Summary:	Embeddable Java HTTP engine capable of handling large loads
 License:	GNU
 URL:	 	http://www.simpleframework.org	
-Source0:	simple-core-%{version}.tar.gz	
+Source0:	https://sourceforge.net/projects/simpleweb/files/simpleweb/%{version}/simple-core-%{version}.tar.gz	
 BuildArch: noarch
 
 BuildRequires:  ant
@@ -59,6 +59,9 @@ cp -pr doc/* $RPM_BUILD_ROOT%{_javadocdir}/%{name}-%{version}
 %{_javadocdir}/*
 
 %changelog
+* Tue Mar 17 2020 Michael Mraka <michael.mraka@redhat.com> 3.1.3-11
+- Updated simple-core.spec Source URL
+
 * Fri Feb 09 2018 Michael Mraka <michael.mraka@redhat.com> 3.1.3-10
 - removed %%%%defattr from specfile
 - remove install/clean section initial cleanup

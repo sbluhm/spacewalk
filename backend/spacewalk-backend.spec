@@ -46,7 +46,7 @@
 Name: spacewalk-backend
 Summary: Common programs needed to be installed on the Spacewalk servers/proxies
 License: GPLv2
-Version: 2.11.1
+Version: 2.11.2
 Release: 1%{?dist}
 URL:       https://github.com/spacewalkproject/spacewalk
 Source0: https://github.com/spacewalkproject/spacewalk/archive/%{name}-%{version}.tar.gz
@@ -236,11 +236,7 @@ Summary: Spacewalk server and client tools libraries
 %if 0%{?suse_version}
 BuildRequires: python-devel
 %else
-%if 0%{?rhel} >= 8
 Requires: python2
-%else
-Requires: python
-%endif
 BuildRequires: python2-devel
 Conflicts: %{name} < 1.7.0
 Requires: python2-spacewalk-usix
@@ -357,7 +353,10 @@ Requires: %{name}-server = %{version}-%{release}
 Requires: python3-spacewalk-usix
 Requires: subscription-manager
 Requires: %{m2crypto}
+# python-argparse is included in Python 2.7
+%if 0%{?rhel} == 6
 Requires: python-argparse
+%endif
 
 %description cdn
 Tools for syncing content from Red Hat CDN
@@ -809,6 +808,9 @@ rm -f %{rhnconf}/rhnSecret.py*
 %endif
 
 %changelog
+* Tue Mar 17 2020 Michael Mraka <michael.mraka@redhat.com> 2.11.2-1
+- Updated spacewalk-backend.spec to work for RHEL8
+
 * Fri Feb 28 2020 Michael Mraka <michael.mraka@redhat.com> 2.11.1-1
 - added treeinfo file to download list
 
