@@ -85,11 +85,11 @@ class ProxyAuth:
         mtime = None
         try:
             mtime = os.stat(ProxyAuth.__systemid_filename)[-2]
-        except IOError, e:
+        except IOError as e:
             log_error("unable to stat %s: %s" % (ProxyAuth.__systemid_filename, repr(e)))
-            raise rhnFault(1000,
+            raise (rhnFault(1000,
                            _("Spacewalk Proxy error (Spacewalk Proxy systemid has wrong permissions?). "
-                             "Please contact your system administrator.")), None, sys.exc_info()[2]
+                             "Please contact your system administrator.")), None, sys.exc_info()[2])
 
         if not self.__systemid_mtime:
             ProxyAuth.__systemid_mtime = mtime
@@ -102,11 +102,11 @@ class ProxyAuth:
         # get systemid
         try:
             ProxyAuth.__systemid = open(ProxyAuth.__systemid_filename, 'r').read()
-        except IOError, e:
+        except IOError as e:
             log_error("unable to read %s" % ProxyAuth.__systemid_filename)
-            raise rhnFault(1000,
+            raise (rhnFault(1000,
                            _("Spacewalk Proxy error (Spacewalk Proxy systemid has wrong permissions?). "
-                             "Please contact your system administrator.")), None, sys.exc_info()[2]
+                             "Please contact your system administrator.")), None, sys.exc_info()[2])
 
         # get serverid
         sysid, _cruft = xmlrpclib.loads(ProxyAuth.__systemid)
@@ -164,9 +164,9 @@ Either the authentication caching daemon is experiencing
 problems, isn't running, or the token is somehow corrupt.
 """) % self.__serverid
             Traceback("ProxyAuth.set_cached_token", extra=text)
-            raise rhnFault(1000,
+            raise (rhnFault(1000,
                            _("Spacewalk Proxy error (auth caching issue). "
-                             "Please contact your system administrator.")), None, sys.exc_info()[2]
+                             "Please contact your system administrator.")), None, sys.exc_info()[2])
         log_debug(4, "successfully returning")
         return token
 
@@ -247,20 +247,20 @@ problems, isn't running, or the token is somehow corrupt.
         for _i in range(self.__nRetries):
             try:
                 token = server.proxy.login(self.__systemid)
-            except (socket.error, socket.sslerror), e:
+            except (socket.error, socket.sslerror) as e:
                 if CFG.HTTP_PROXY:
                     # socket error, check to see if your HTTP proxy is running...
                     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     httpProxy, httpProxyPort = CFG.HTTP_PROXY.split(':')
                     try:
                         s.connect((httpProxy, int(httpProxyPort)))
-                    except socket.error, e:
+                    except socket.error as e:
                         error = ['socket.error', 'HTTP Proxy not running? '
                                  '(%s) %s' % (CFG.HTTP_PROXY, e)]
                         # rather big problem: http proxy not running.
                         log_error("*** ERROR ***: %s" % error[1])
                         Traceback(mail=0)
-                    except socket.sslerror, e:
+                    except socket.sslerror as e:
                         error = ['socket.sslerror',
                                  '(%s) %s' % (CFG.HTTP_PROXY, e)]
                         # rather big problem: http proxy not running.
@@ -277,19 +277,19 @@ problems, isn't running, or the token is somehow corrupt.
                 token = None
                 time.sleep(.25)
                 continue
-            except SSL.SSL.Error, e:
+            except SSL.SSL.Error as e:
                 token = None
                 error = ['rhn.SSL.SSL.Error', repr(e), str(e)]
                 log_error(error)
                 Traceback(mail=0)
                 time.sleep(.25)
                 continue
-            except xmlrpclib.ProtocolError, e:
+            except xmlrpclib.ProtocolError as e:
                 token = None
                 log_error('xmlrpclib.ProtocolError', e)
                 time.sleep(.25)
                 continue
-            except xmlrpclib.Fault, e:
+            except xmlrpclib.Fault as e:
                 # Report it through the mail
                 # Traceback will try to walk over all the values
                 # in each stack frame, and eventually will try to stringify
@@ -300,16 +300,16 @@ problems, isn't running, or the token is somehow corrupt.
                 if e.faultCode == 10000:
                     # reraise it for the users (outage or "important message"
                     # coming through")
-                    raise rhnFault(e.faultCode, e.faultString), None, sys.exc_info()[2]
+                    raise (rhnFault(e.faultCode, e.faultString), None, sys.exc_info()[2])
                 # ok... it's some other fault
                 Traceback("ProxyAuth.login (Fault) - Spacewalk Proxy not "
                           "able to log in.")
                 # And raise a Proxy Error - the server made its point loud and
                 # clear
-                raise rhnFault(1000,
+                raise (rhnFault(1000,
                                _("Spacewalk Proxy error (during proxy login). "
-                                 "Please contact your system administrator.")), None, sys.exc_info()[2]
-            except Exception, e:  # pylint: disable=E0012, W0703
+                                 "Please contact your system administrator.")), None, sys.exc_info()[2])
+            except Exception as e:  # pylint: disable=E0012, W0703
                 token = None
                 log_error("Unhandled exception", e)
                 Traceback(mail=0)
@@ -321,13 +321,13 @@ problems, isn't running, or the token is somehow corrupt.
         if not token:
             if error:
                 if error[0] in ('xmlrpclib.ProtocolError', 'socket.error', 'socket'):
-                    raise rhnFault(1000,
+                    raise (rhnFault(1000,
                                    _("Spacewalk Proxy error (error: %s). "
-                                     "Please contact your system administrator.") % error[0])
+                                     "Please contact your system administrator.") % error[0]))
                 if error[0] in ('rhn.SSL.SSL.Error', 'socket.sslerror'):
-                    raise rhnFault(1000,
+                    raise (rhnFault(1000,
                                    _("Spacewalk Proxy error (SSL issues? Error: %s). "
-                                     "Please contact your system administrator.") % error[0])
+                                     "Please contact your system administrator.") % error[0]))
                 else:
                     raise rhnFault(1002, err_text='%s' % e)
             else:
@@ -411,10 +411,10 @@ problems, isn't running, or the token is somehow corrupt.
         if CFG.USE_SSL and CFG.CA_CHAIN:
             if not os.access(CFG.CA_CHAIN, os.R_OK):
                 log_error('ERROR: missing or cannot access (for ca_chain): %s' % CFG.CA_CHAIN)
-                raise rhnFault(1000,
+                raise (rhnFault(1000,
                                _("Spacewalk Proxy error (file access issues). "
                                  "Please contact your system administrator. "
-                                 "Please refer to Spacewalk Proxy logs."))
+                                 "Please refer to Spacewalk Proxy logs.")))
             serverObj.add_trusted_cert(CFG.CA_CHAIN)
         serverObj.add_header('X-RHN-Client-Version', 2)
         return serverObj
