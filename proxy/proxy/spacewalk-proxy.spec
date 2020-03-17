@@ -1,4 +1,4 @@
-%if (0%{?fedora} && 0%{?fedora} <30) || 0%{?rhel} == 7
+%if (0%{?fedora} && 0%{?fedora} <30) || 0%{?rhel} >= 7
 %{!?pylint_check: %global pylint_check 1}
 %endif
 
@@ -9,15 +9,15 @@ Release: 1%{?dist}
 License: GPLv2
 URL:     https://github.com/spacewalkproject/spacewalk
 Source0: https://github.com/spacewalkproject/spacewalk/archive/%{name}-%{version}.tar.gz
-BuildRequires: python2
+BuildRequires: python3
 BuildArch: noarch
 Requires: httpd
 %if 0%{?pylint_check}
-BuildRequires: spacewalk-python2-pylint
+BuildRequires: spacewalk-python3-pylint
 %endif
 BuildRequires: rhnpush >= 5.5.74
 # proxy isn't Python 3 yet
-BuildRequires: python2-rhnpush
+BuildRequires: python3-rhnpush
 BuildRequires: spacewalk-backend-libs >= 1.7.24
 BuildRequires: spacewalk-backend >= 1.7.24
 
@@ -143,10 +143,9 @@ Spacewalk Proxy components.
 Summary: Custom Channel Package Manager for the Spacewalk Proxy Server
 Requires: spacewalk-backend >= 1.7.24
 Requires: rhnlib >= 2.5.56
-Requires: python2
+Requires: python3
 Requires: rhnpush >= 5.5.74
-# proxy isn't Python 3 yet
-Requires: python2-rhnpush
+Requires: python3-rhnpush
 BuildRequires: /usr/bin/docbook2man
 BuildRequires: python-devel
 Obsoletes: rhn_package_manager < 5.3.0
