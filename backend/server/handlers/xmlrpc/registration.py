@@ -396,9 +396,9 @@ class Registration(rhnHandler):
             try:
                 # don't commit
                 newserv.save(0, channel)
-            except (rhnChannel.NoBaseChannelError), channel_error:
+            except (rhnChannel.NoBaseChannelError) as channel_error:
                 raise_with_tb(rhnFault(70), sys.exc_info()[2])
-            except rhnChannel.BaseChannelDeniedError, channel_error:
+            except rhnChannel.BaseChannelDeniedError as channel_error:
                 raise_with_tb(rhnFault(71), sys.exc_info()[2])
             except server_lib.rhnSystemEntitlementException:
                 e = sys.exc_info()[1]
@@ -433,9 +433,9 @@ class Registration(rhnHandler):
         #   +--rhnNoSystemEntitlementsException
         try:
             newserv.save(1, channel)
-        except (rhnChannel.NoBaseChannelError), channel_error:
+        except (rhnChannel.NoBaseChannelError) as channel_error:
             raise_with_tb(rhnFault(70), sys.exc_info()[2])
-        except rhnChannel.BaseChannelDeniedError, channel_error:
+        except rhnChannel.BaseChannelDeniedError as channel_error:
             raise_with_tb(rhnFault(71), sys.exc_info()[2])
         except server_lib.rhnSystemEntitlementException:
             e = sys.exc_info()[1]
