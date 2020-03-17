@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import xmlrpclib
 from optparse import OptionParser
@@ -28,7 +28,7 @@ if len(terms) < 1:
     parser.error("please supply a search term\n" + str(parser.print_help()))
 
 if not options.sessionid and (not options.username or not options.password):
-    print parser.print_help()
+    print (parser.print_help())
     parser.exit()
 
 
@@ -45,24 +45,24 @@ if options.indexName:
 sessionid = None
 if options.sessionid:
     sessionid = options.sessionid
-    print "Using passed in authentication info, sessionid = %s" % (sessionid)
+    print ("Using passed in authentication info, sessionid = %s" % (sessionid))
 else:
     xmlrpcURL = "http://%s/rhn/rpc/api" % (options.serverAddr)
-    print "Getting authentication information from: %s" % (xmlrpcURL)
+    print ("Getting authentication information from: %s" % (xmlrpcURL))
     rhnclient = xmlrpclib.Server(xmlrpcURL)
     authSessionId = rhnclient.auth.login(options.username, options.password)
     sessionid = int(authSessionId.split('x')[0])
 
 url = "http://localhost:2828/RPC2"
-print "Connecting to SearchServer: (%s)" % url
+print ("Connecting to SearchServer: (%s)" % url)
 client = xmlrpclib.Server(url, verbose=options.debug)
 
 term = " ".join(terms)
-print "searching for (%s) matching criteria: (%s)" % (indexName, str(term))
+print ("searching for (%s) matching criteria: (%s)" % (indexName, str(term)))
 items = client.index.search(sessionid, indexName, term)
 
-print "We got (%d) items back." % len(items)
-print items
+print ("We got (%d) items back." % len(items))
+print (items)
 
 #Remember to logout if the user didn't supply the sessionid
 if not options.sessionid:
