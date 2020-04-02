@@ -1,5 +1,5 @@
 Name:           spacewalk-setup-postgresql
-Version:        2.11.1
+Version:        2.11.2
 Release:        1%{?dist}
 Summary:        Tools to setup embedded PostgreSQL database for Spacewalk
 License:        GPLv2
@@ -37,7 +37,7 @@ install -m 0644 setup/defaults.d/* %{buildroot}/%{_datadir}/spacewalk/setup/defa
 
 # Different set of parameters on PSQL 9.5+
 %if 0%{?fedora} || 0%{?rhel} >= 8
-install -m 0644 setup/postgresql95.conf %{buildroot}/%{_datadir}/spacewalk/setup/
+install -m 0644 setup/postgresql95.conf %{buildroot}/%{_datadir}/spacewalk/setup/postgresql.conf
 %else
 install -m 0644 setup/postgresql.conf %{buildroot}/%{_datadir}/spacewalk/setup/
 %endif
@@ -63,6 +63,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Mar 25 2020 Michael Mraka <michael.mraka@redhat.com> 2.11.2-1
+- Fixed postgresql configuration file name
+
 * Tue Mar 17 2020 Michael Mraka <michael.mraka@redhat.com> 2.11.1-1
 - Created config file for PostgreSQL 9.5+
 - Updated spacewalk-setup-postgesql for PostgeSQL 9.5

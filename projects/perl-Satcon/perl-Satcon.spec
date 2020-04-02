@@ -2,7 +2,7 @@
 
 Name:           perl-Satcon
 Summary:        Framework for configuration files
-Version:        2.11.0
+Version:        2.11.1
 Release:        1%{?dist}
 License:        GPLv2
 URL:            https://github.com/spacewalkproject/spacewalk
@@ -15,11 +15,7 @@ BuildRequires:  coreutils
 BuildRequires:  findutils
 BuildRequires:  make
 BuildRequires:  perl-interpreter
-%if 0%{?rhel} == 8
-BuildRequires:  perl-generators < 1.10-7.module
-%else
 BuildRequires:  perl-generators
-%endif
 # Run-time:
 # bytes not used at tests
 # Data::Dumper not used at tests
@@ -63,6 +59,9 @@ make test
 %{_bindir}/*
 
 %changelog
+* Mon Mar 23 2020 Michael Mraka <michael.mraka@redhat.com> 2.11.1-1
+- Removed module workaround
+
 * Tue Oct 01 2019 Michael Mraka <michael.mraka@redhat.com> 2.10.3-1
 - workaround RHEL8 buildrequires modules issue
 

@@ -4,7 +4,7 @@
 %endif
 
 Name:		spacewalk-utils
-Version:	2.11.3
+Version:	2.11.5
 Release:	1%{?dist}
 Summary:	Utilities that may be run against a Spacewalk server.
 
@@ -20,7 +20,7 @@ BuildRequires:  /usr/bin/docbook2man
 BuildRequires:  docbook-utils
 BuildRequires:  python2
 BuildRequires: /usr/bin/pod2man
-%if 0%{?fedora} || 0%{?rhel} > 5
+%if 0%{?fedora} || 0%{?rhel} >=7
 BuildRequires:  python2-dnf
 BuildRequires:  spacewalk-config
 BuildRequires:  spacewalk-backend >= 1.7.24
@@ -91,6 +91,12 @@ spacewalk-python2-pylint $RPM_BUILD_ROOT%{rhnroot}
 
 
 %changelog
+* Fri Mar 20 2020 Michael Mraka <michael.mraka@redhat.com> 2.11.5-1
+- fixed centos8 base channel
+
+* Fri Mar 20 2020 Michael Mraka <michael.mraka@redhat.com> 2.11.4-1
+- fixed centos8 gpg key id
+
 * Wed Mar 11 2020 Stefan Bluhm <stefan.bluhm@clacee.eu> 2.11.2-2
 - Added logic for versioned Python (2)
 
