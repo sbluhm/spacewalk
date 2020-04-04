@@ -20,23 +20,24 @@ import os.path
 from os import makedirs
 from shutil import rmtree
 
-import yum
+import yum						#DNFPROJECT
+import dnf
 from yum.Errors import RepoMDError
 from yum.comps import Comps
 from yum.config import ConfigParser
+from libdnf.conf import ConfigParser as ConfigParser_DNF	#DNFPROJECT
 from yum.packageSack import ListPackageSack
 from yum.update_md import UpdateMetadata, UpdateNoticeException, UpdateNotice
 from yum.yumRepo import YumRepository
 from yum.yumRepo import Errors as YumErrors
+from dnf.exceptions import RepoError
+
 try:
-    from yum.misc import cElementTree_iterparse as iterparse
+    from xml.etree import cElementTree
 except ImportError:
-    try:
-        from xml.etree import cElementTree
-    except ImportError:
-        # pylint: disable=F0401
-        import cElementTree
-    iterparse = cElementTree.iterparse
+    # pylint: disable=F0401
+    import cElementTree
+iterparse = cElementTree.iterparse
 from urlgrabber.grabber import URLGrabError
 try:
     #  python 2
@@ -119,11 +120,18 @@ class ContentSource(object):
                  client_key_file=None):
         self.url = url
         self.name = name
-        self.yumbase = yum.YumBase()
-        self.yumbase.preconf.fn = yumsrc_conf
+        self.yumbase = yum.YumBase()					#DNFPROJECT
+        self.dnfbase_DNF = dnf.Base()
+        self.yumbase.preconf.fn = yumsrc_conf				#DNFPROJECT
+        self.dnfbase_DNF.conf.read(yumsrc_conf)
         if not os.path.exists(yumsrc_conf):
-            self.yumbase.preconf.fn = '/dev/null'
+            self.yumbase.preconf.fn = '/dev/null'			#DNFPROJECT
+            self.dnfbase_DNF.conf.read('/dev/null')
+#        self.dnfbase_DNF.read_all_repos()				# STEFAN: Double check if required.
         self.configparser = ConfigParser()
+        self.configparser_DNF = ConfigParser_DNF()	# Reading config file directly as dnf only ready MAIN section.
+        self.configparser_DNF.setSubstitutions( dnf.Base().conf.substitutions)
+        self.configparser_DNF.read(yumsrc_conf)
         if org:
             self.org = org
         else:
@@ -148,65 +156,83 @@ class ContentSource(object):
             self.proxy_user = CFG.http_proxy_username
             self.proxy_pass = CFG.http_proxy_password
         else:
-            yb_cfg = self.yumbase.conf.cfg
+            db_cfg_DNF = self.configparser_DNF
             section_name = None
 
-            if yb_cfg.has_section(self.name):
+            if db_cfg_DNF.has_section(self.name):
                 section_name = self.name
-            elif yb_cfg.has_section(channel_label):
+            elif db_cfg_DNF.has_section(channel_label):
                 section_name = channel_label
-            elif yb_cfg.has_section('main'):
+            elif db_cfg_DNF.has_section('main'):
                 section_name = 'main'
 
             if section_name:
-                if yb_cfg.has_option(section_name, option='proxy'):
-                    self.proxy_addr = yb_cfg.get(section_name, option='proxy')
+                if db_cfg_DNF.has_option(section_name, option='proxy'):
+                    self.proxy_addr = db_cfg_DNF.get(section_name, option='proxy')
 
-                if yb_cfg.has_option(section_name, 'proxy_username'):
-                    self.proxy_user = yb_cfg.get(section_name, 'proxy_username')
+                if db_cfg_DNF.has_option(section_name, 'proxy_username'):
+                    self.proxy_user = db_cfg_DNF.get(section_name, 'proxy_username')
 
-                if yb_cfg.has_option(section_name, 'proxy_password'):
-                    self.proxy_pass = yb_cfg.get(section_name, 'proxy_password')
+                if db_cfg_DNF.has_option(section_name, 'proxy_password'):
+                    self.proxy_pass = db_cfg_DNF.get(section_name, 'proxy_password')
 
         self._authenticate(url)
 
         # Check for settings in yum configuration files (for custom repos/channels only)
+
         if org:
-            repos = self.yumbase.repos.repos
+            repos = self.yumbase.repos.repos					#DNFPROJECT
+            repos_DNF = self.dnfbase_DNF.repos
         else:
-            repos = None
+            repos = None							
+            repos_DNF = None							#DNFPROJECT
         if repos and name in repos:
-            repo = repos[name]
+            repo = repos[name]							
+            repo_DNF = repos_DNF[name]						#DNFPROJECT
         elif repos and channel_label in repos:
-            repo = repos[channel_label]
+            repo = repos[channel_label]						
+            repo_DNF = repos_DNF[channel_label]					#DNFPROJECT
             # In case we are using Repo object based on channel config, override it's id to name of the repo
             # To not create channel directories in cache directory
             repo.id = name
         else:
             # Not using values from config files
-            repo = yum.yumRepo.YumRepository(name)
-            repo.populate(self.configparser, name, self.yumbase.conf)
+            repo = yum.yumRepo.YumRepository(name)				#DNFPROJECT
+            repo_DNF = dnf.repo.Repo(name)
+            repo.populate(self.configparser, name, self.yumbase.conf)		#DNFPROJECT
+            repo_DNF.repofile = yumsrc_conf					#STEFAN: Check out why orig uses self.yumbase.conf instead of yumsrc_conf
+            repo_DNF._populate(self.configparser_DNF, name,  yumsrc_conf)
         self.repo = repo
+        self.repo_DNF = repo_DNF						#DNFPROJECT
+
+#        print "STEFAN1"
+#        print repo
+#        print "STEFAN2"
+#        print repo_DNF					# STEFAN: Looks different and MetaURL is missing
 
         self.setup_repo(repo, no_mirrors, ca_cert_file, client_cert_file, client_key_file)
+        self.setup_repo_DNF(repo_DNF, no_mirrors, ca_cert_file, client_cert_file, client_key_file)
         self.num_packages = 0
         self.num_excluded = 0
         self.groupsfile = None
+        self.number_of_packages_DNF()				#STEFAN for debugging
+
 
     def __del__(self):
         # close log files for yum plugin
-        for handler in logging.getLogger("yum.filelogging").handlers:
-            handler.close()
+#        for handler in logging.getLogger("yum.filelogging").handlers:
+#            handler.close()
+        # Logging cannot be reduced to exclude file logging in dnf. So this is not required anymore.
         self.repo.close()
 
     def _authenticate(self, url):
         pass
 
-    @staticmethod
-    def interrupt_callback(*args, **kwargs):  # pylint: disable=W0613
-        # Just re-raise
-        e = sys.exc_info()[1]
-        raise e
+    @staticmethod					#DNFPROJECT
+    def interrupt_callback(*args, **kwargs):  # pylint: disable=W0613	#DNFPROJECT
+        # Just re-raise					#DNFPROJECT
+        e = sys.exc_info()[1]				#DNFPROJECT
+        raise e						#DNFPROJECT
 
     def setup_repo(self, repo, no_mirrors, ca_cert_file, client_cert_file, client_key_file):
         """Fetch repository metadata"""
@@ -260,16 +286,55 @@ class ContentSource(object):
         repo.interrupt_callback = self.interrupt_callback
         repo.setup(0)
 
-    def number_of_packages(self):
+
+    def setup_repo_DNF(self, repo, no_mirrors, ca_cert_file, client_cert_file, client_key_file):
+        """Fetch repository metadata"""
+        repo.metadata_expire=0
+        repo.mirrorlist = self.url
+        repo.baseurl = [self.url]
+        repo.basecachedir = os.path.join(CACHE_DIR, self.org)
+
+        pkgdir = os.path.join(CFG.MOUNT_POINT, CFG.PREPENDED_DIR, self.org, 'stage')
+        if not os.path.isdir(pkgdir):
+            fileutils.makedirs(pkgdir, user='apache', group='apache')
+        repo.pkgdir = pkgdir				# STEFAN: Is set but does not show up in config
+        repo.sslcacert = ca_cert_file
+        repo.sslclientcert = client_cert_file
+        repo.sslclientkey = client_key_file
+        repo.proxy = None
+        repo.proxy_username = None
+        repo.proxy_password = None
+
+        if self.proxy_addr:
+            repo.proxy = self.proxy_addr if '://' in self.proxy_addr else 'http://' + self.proxy_addr
+            repo.proxy_username = self.proxy_user
+            repo.proxy_password = self.proxy_pass
+
+        # Do not try to expand baseurl to other mirrors
+        if no_mirrors:
+            repo.baseurl = [repo.baseurl[0]]
+            repo.mirrorlist = None
+        self.dnfbase_DNF.repos.add(repo)
+        self.repoid = repo.id				#DNF Added repo ID to identify Repo in future
+
+
+    def number_of_packages_DNF(self):				# does not seem to be used...
         for dummy_index in range(3):
             try:
-                self.repo.getPackageSack().populate(self.repo, 'metadata', None, 0)
+                self.dnfbase_DNF.fill_sack(load_available_repos=True)
                 break
-            except YumErrors.RepoError:
+            except RepoError:
                 pass
-        return len(self.repo.getPackageSack().returnPackages())
+        print "STEFAN2"
+        print(len(self.dnfbase_DNF.sack.query()))
+#        packages = self.dnfbase_DNF.sack.query()  # i only gets evaluated here
+#        for pkg in packages:
+#            print(pkg,  pkg.reponame)
+        return len(self.dnfbase_DNF.sack)
 
-    def raw_list_packages(self, filters=None):
+
+
+    def raw_list_packages(self, filters=None):				#DNFPROJECT
         for dummy_index in range(3):
             try:
                 self.repo.getPackageSack().populate(self.repo, 'metadata', None, 0)
@@ -293,8 +358,34 @@ class ContentSource(object):
             rawpkglist = self._get_package_dependencies(self.repo.getPackageSack(), rawpkglist)
 
             self.num_excluded = self.num_packages - len(rawpkglist)
-
         return rawpkglist
+
+    def raw_list_packages_DNF(self, filters=None):
+        for dummy_index in range(3):
+            try:
+                self.dnfbase_DNF.fill_sack(load_available_repos=True)
+                break
+            except YumErrors.RepoError:
+                pass
+
+        rawpkglist = self.dnfbase_DNF.sack.query()
+        self.num_packages = len(rawpkglist)
+
+        if not filters:
+            filters = []
+            # if there's no include/exclude filter on command line or in database
+            for p in self.dnfbase_DNF.repos[self.repoid].includepkgs:
+                filters.append(('+', [p]))
+            for p in self.dnfbase_DNF.repos[self.repoid].exclude:
+                filters.append(('-', [p]))
+
+        if filters:
+            rawpkglist = self._filter_packages(rawpkglist, filters)
+            rawpkglist = self._get_package_dependencies(self.repo.getPackageSack(), rawpkglist)
+
+            self.num_excluded = self.num_packages - len(rawpkglist)
+        return rawpkglist
+
 
     def list_packages(self, filters, latest):
         """ list packages"""
