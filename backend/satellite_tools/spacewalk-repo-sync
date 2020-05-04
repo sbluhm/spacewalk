@@ -24,7 +24,7 @@ import os
 from optparse import OptionParser
 import datetime
 
-from spacewalk.satellite_tools.syncLib import initEMAIL_LOG
+from syncLib import initEMAIL_LOG
 
 LOCK = None
 
@@ -40,7 +40,7 @@ try:
     from rhn import rhnLockfile
     from spacewalk.common import rhnLog
     from spacewalk.common.rhnConfig import CFG, initCFG
-    from spacewalk.satellite_tools import reposync
+    import reposync
     from spacewalk.satellite_tools.syncLib import log, log2disk
 except KeyboardInterrupt:
     systemExit(0, "\nUser interrupted process.")

@@ -1,0 +1,1356 @@
+#
+# Copyright (c) 2008--2020 Red Hat, Inc.
+# Copyright (c) 2010--2011 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2020 Stefan Bluhm
+#
+# This software is licensed to you under the GNU General Public License,
+# version 2 (GPLv2). There is NO WARRANTY for this software, express or
+# implied, including the implied warranties of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. You should have received a copy of GPLv2
+# along with this software; if not, see
+# http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
+#
+# Red Hat trademarks are not licensed under GPLv2. No permission is
+# granted to use or replicate Red Hat trademarks that are incorporated
+# in this software or its documentation.
+#
+
+# Known issues:
+# - if mirrorlist fails, no revert to baseurl (bugzilla , expected fix in later dnf)
+
+# TODO
+# - Test environments in (expand_comps_type)
+# - Verify Missing filter despite comps/modules early in repomd.val causes dnf to fail
+# - dnf and yum numbers differ (test epel) (packages and mirrors)
+# - clear_cache function
+# - Check again group and group_gz and why it is not loaded
+# - Add self.repo.repoXML.repoData['group'].timestamp # should be in get_groups
+# - Add self.repo.repoXML.repoData['modules'].timestamp # should be in get_modules
+# - test repo.pkgdir if this directory is ok 
+# - Test http headers for proper format
+
+
+import copy # STEFAN temporary. delete
+import textwrap # STEFAN check if required after streamlining YumUpdateMetadata
+import sys
+import logging
+import os.path
+from os import makedirs
+from shutil import rmtree
+
+import yum						#DNFPROJECT
+import dnf
+from yum.Errors import RepoMDError
+from yum.comps import Comps
+from yum.config import ConfigParser
+from libdnf.conf import ConfigParser as ConfigParser_DNF	#DNFPROJECT
+from yum.packageSack import ListPackageSack
+from yum.update_md import UpdateMetadata, UpdateNoticeException, UpdateNotice
+from yum.yumRepo import YumRepository
+from yum.yumRepo import Errors as YumErrors
+from dnf.exceptions import RepoError
+
+try:
+    from xml.etree import cElementTree
+except ImportError:
+    # pylint: disable=F0401
+    import cElementTree
+iterparse = cElementTree.iterparse
+from urlgrabber.grabber import URLGrabError
+try:
+    #  python 2
+    import urlparse
+except ImportError:
+    #  python3
+    import urllib.parse as urlparse # pylint: disable=F0401,E0611
+
+from spacewalk.common import fileutils, checksum
+from spacewalk.satellite_tools.download import get_proxies
+from spacewalk.satellite_tools.repo_plugins import ContentPackage, CACHE_DIR
+from spacewalk.common.rhnConfig import CFG, initCFG
+
+YUMSRC_CONF = '/etc/rhn/spacewalk-repo-sync/yum.conf'
+
+
+class YumWarnings:
+
+    def __init__(self):
+        self.saved_stdout = None
+        self.errors = None
+
+    def write(self, s):
+        pass
+
+    def disable(self):
+        self.saved_stdout = sys.stdout
+        sys.stdout = self
+
+    def restore(self):
+        sys.stdout = self.saved_stdout
+
+
+class YumUpdateMetadata(UpdateMetadata):				# STEFAN: Do this, I somehow skipped it
+
+    """The root update metadata object supports getting all updates"""
+
+# pylint: disable=W0221
+    def add(self, obj, mdtype='updateinfo', all_versions=False):
+        print "STEFAN YumUpdateMetadata.add"
+        """ Parse a metadata from a given YumRepository, file, or filename. """
+        if not obj:
+            raise MiscError
+        if isinstance(obj, (type(''), type(u''))):
+            infile = fileutils.decompress_open(obj)
+        elif isinstance(obj, dnf.repo.Repo):
+            print "STEFAN_DNF look below"
+            if obj.id not in self._repos:
+                self._repos.append(obj.id)
+                md = obj.get_metadata_path(mdtype)
+                if not md:
+                    raise MetadataError
+                infile = fileutils.decompress_open(md)
+        else:   # obj is a file object
+            infile = obj
+
+        for _event, elem in iterparse(infile):
+            if elem.tag == 'update':
+                un = UpdateNotice(elem)
+                key = un['update_id']
+                if all_versions:
+                    key = "%s-%s" % (un['update_id'], un['version'])
+                if key not in self._notices:
+                    self._notices[key] = un
+                    for pkg in un['pkglist']:
+                        for pkgfile in pkg['packages']:
+                            self._cache['%s-%s-%s' % (pkgfile['name'],
+                                                      pkgfile['version'],
+                                                      pkgfile['release'])] = un
+                            no = self._no_cache.setdefault(pkgfile['name'], set())
+                            no.add(un)
+
+class UpdateNotice(object):
+
+    """
+    A single update notice (for instance, a security fix). Backport from yum.update_md.UpdateNotice
+    """
+
+    def __init__(self, elem=None, repoid=None, vlogger=None):
+        self._md = {
+            'from'             : '',
+            'type'             : '',
+            'title'            : '',
+            'release'          : '',
+            'status'           : '',
+            'version'          : '',
+            'pushcount'        : '',
+            'update_id'        : '',
+            'issued'           : '',
+            'updated'          : '',
+            'description'      : '',
+            'rights'           : '',
+            'severity'         : '',
+            'summary'          : '',
+            'solution'         : '',
+            'references'       : [],
+            'pkglist'          : [],
+            'reboot_suggested' : False
+        }
+
+        if elem:
+            self._parse(elem)
+
+        self._repoid = repoid
+        self._vlogger = vlogger
+
+    def __getitem__(self, item):
+        """ Allows scriptable metadata access (ie: un['update_id']). """
+        if type(item) is int:
+            return sorted(self._md)[item]
+        ret = self._md.get(item)
+        if ret == '':
+            ret = None
+        return ret
+
+    def __contains__(self, item):
+        """ Allows quick tests for foo in blah. """
+        return item in self._md
+
+    def __setitem__(self, item, val):
+        self._md[item] = val
+
+    def __eq__(self, other):
+        #  Tests to see if it's "the same data", which means that the
+        # packages can be different (see add_notice).
+
+        def _rid(un):
+            if hasattr(un, '_repoid') and un._repoid is not None:
+                return un._repoid
+            else:
+                return '<unknown>'
+
+        def _log_failure(data):
+            """Log the mismatched data similarly to conflict markers in git."""
+            if self._vlogger is None:
+                return
+            msg = _('Duplicate of %s differs in some fields:\n')
+            msg %= other._md['update_id']
+            msg += '<<<<<<< %s:%s\n' % (_rid(other), data)
+            msg += '%r\n=======\n%r\n' % (other._md[data], self._md[data])
+            msg += '>>>>>>> %s:%s' % (_rid(self), data)
+            # --verbose mode enables this
+            self._vlogger.log(logginglevels.DEBUG_3, msg)
+
+        if not other or not hasattr(other, '_md'):
+            return False
+
+        for data in ('type', 'update_id', 'status', 'rights',
+                     'severity', 'release',
+                     'issued', 'updated', 'version', 'pushcount',
+                     'from', 'title', 'summary', 'description', 'solution'):
+            if data == 'status': # FIXME: See below...
+                continue
+            if self._md[data] != other._md[data]:
+                _log_failure(data)
+                return False
+        # FIXME: Massive hack, Fedora is really broken and gives status=stable
+        # and status=testing for updateinfo notices, just depending on which
+        # repo. they come from.
+        data = 'status'
+        if self._md[data] != other._md[data]:
+            if self._md[data]  not in ('stable', 'testing'):
+                _log_failure(data)
+                return False
+            if other._md[data] not in ('stable', 'testing'):
+                _log_failure(data)
+                return False
+            # They are both really "stable" ...
+            self._md[data]  = 'stable'
+            other._md[data] = 'stable'
+
+        return True
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def text(self, skip_data=('files', 'summary', 'rights', 'solution')):
+        head = """
+===============================================================================
+  %(title)s
+===============================================================================
+  Update ID : %(update_id)s
+    Release : %(release)s
+       Type : %(type)s
+     Status : %(status)s
+     Issued : %(issued)s
+""" % self._md
+
+        if self._md['updated'] and self._md['updated'] != self._md['issued']:
+            head += "    Updated : %s" % self._md['updated']
+
+        # Add our bugzilla references
+        bzs = filter(lambda r: r['type'] == 'bugzilla', self._md['references'])
+        if len(bzs) and 'bugs' not in skip_data:
+            buglist = "       Bugs :"
+            for bz in bzs:
+                buglist += " %s%s\n\t    :" % (bz['id'], 'title' in bz
+                                               and ' - %s' % bz['title'] or '')
+            head += buglist[: - 1].rstrip() + '\n'
+
+        # Add our CVE references
+        cves = filter(lambda r: r['type'] == 'cve', self._md['references'])
+        if len(cves) and 'cves' not in skip_data:
+            cvelist = "       CVEs :"
+            for cve in cves:
+                cvelist += " %s\n\t    :" % cve['id']
+            head += cvelist[: - 1].rstrip() + '\n'
+
+        if self._md['summary'] and 'summary' not in skip_data:
+            data = textwrap.wrap(self._md['summary'], width=64,
+                                  subsequent_indent=' ' * 12 + ': ')
+            head += "    Summary : %s\n" % '\n'.join(data)
+
+        if self._md['description'] and 'description' not in skip_data:
+            desc = textwrap.wrap(self._md['description'], width=64,
+                                  subsequent_indent=' ' * 12 + ': ')
+            head += "Description : %s\n" % '\n'.join(desc)
+
+        if self._md['solution'] and 'solution' not in skip_data:
+            data = textwrap.wrap(self._md['solution'], width=64,
+                                  subsequent_indent=' ' * 12 + ': ')
+            head += "   Solution : %s\n" % '\n'.join(data)
+
+        if self._md['rights'] and 'rights' not in skip_data:
+            data = textwrap.wrap(self._md['rights'], width=64,
+                                  subsequent_indent=' ' * 12 + ': ')
+            head += "     Rights : %s\n" % '\n'.join(data)
+
+        if self._md['severity'] and 'severity' not in skip_data:
+            data = textwrap.wrap(self._md['severity'], width=64,
+                                  subsequent_indent=' ' * 12 + ': ')
+            head += "   Severity : %s\n" % '\n'.join(data)
+
+        if 'files' in skip_data:
+            return head[:-1] # chop the last '\n'
+
+        #  Get a list of arches we care about:
+        #XXX ARCH CHANGE - what happens here if we set the arch - we need to
+        # pass this in, perhaps
+        arches = set(rpmUtils.arch.getArchList())
+
+        filelist = "      Files :"
+        for pkg in self._md['pkglist']:
+            for file in pkg['packages']:
+                if file['arch'] not in arches:
+                    continue
+                filelist += " %s\n\t    :" % file['filename']
+        head += filelist[: - 1].rstrip()
+
+        return head
+
+    def __str__(self):
+#        return to_utf8(self.text())
+        return self.text().decode('utf-8')
+    def __unicode__(self):
+        return to_unicode(self.text())
+
+    def get_metadata(self):
+        """ Return the metadata dict. """
+        return self._md
+
+    def _parse(self, elem):
+        """
+        Parse an update element::
+            <!ELEMENT update (id, synopsis?, issued, updated,
+                              references, description, rights?,
+                              severity?, summary?, solution?, pkglist)>
+                <!ATTLIST update type (errata|security) "errata">
+                <!ATTLIST update status (final|testing) "final">
+                <!ATTLIST update version CDATA #REQUIRED>
+                <!ATTLIST update from CDATA #REQUIRED>
+        """
+        if elem.tag == 'update':
+            for attrib in ('from', 'type', 'status', 'version'):
+                self._md[attrib] = elem.attrib.get(attrib)
+            for child in elem:
+                if child.tag == 'id':
+                    if not child.text:
+                        raise UpdateNoticeException("No id element found")
+                    self._md['update_id'] = child.text
+                elif child.tag == 'pushcount':
+                    self._md['pushcount'] = child.text
+                elif child.tag == 'issued':
+                    self._md['issued'] = child.attrib.get('date')
+                elif child.tag == 'updated':
+                    self._md['updated'] = child.attrib.get('date')
+                elif child.tag == 'references':
+                    self._parse_references(child)
+                elif child.tag == 'description':
+                    self._md['description'] = child.text
+                elif child.tag == 'rights':
+                    self._md['rights'] = child.text
+                elif child.tag == 'severity':
+                    self._md[child.tag] = child.text
+                elif child.tag == 'summary':
+                    self._md['summary'] = child.text
+                elif child.tag == 'solution':
+                    self._md['solution'] = child.text
+                elif child.tag == 'pkglist':
+                    self._parse_pkglist(child)
+                elif child.tag == 'title':
+                    self._md['title'] = child.text
+                elif child.tag == 'release':
+                    self._md['release'] = child.text
+        else:
+            raise UpdateNoticeException('No update element found')
+
+    def _parse_references(self, elem):
+        """
+        Parse the update references::
+            <!ELEMENT references (reference*)>
+            <!ELEMENT reference>
+                <!ATTLIST reference href CDATA #REQUIRED>
+                <!ATTLIST reference type (self|other|cve|bugzilla) "self">
+                <!ATTLIST reference id CDATA #IMPLIED>
+                <!ATTLIST reference title CDATA #IMPLIED>
+        """
+        for reference in elem:
+            if reference.tag == 'reference':
+                data = {}
+                for refattrib in ('id', 'href', 'type', 'title'):
+                    data[refattrib] = reference.attrib.get(refattrib)
+                self._md['references'].append(data)
+            else:
+                raise UpdateNoticeException('No reference element found')
+
+    def _parse_pkglist(self, elem):
+        """
+        Parse the package list::
+            <!ELEMENT pkglist (collection+)>
+            <!ELEMENT collection (name?, package+)>
+                <!ATTLIST collection short CDATA #IMPLIED>
+                <!ATTLIST collection name CDATA #IMPLIED>
+            <!ELEMENT name (#PCDATA)>
+        """
+        for collection in elem:
+            data = { 'packages' : [] }
+            if 'short' in collection.attrib:
+                data['short'] = collection.attrib.get('short')
+            for item in collection:
+                if item.tag == 'name':
+                    data['name'] = item.text
+                elif item.tag == 'package':
+                    data['packages'].append(self._parse_package(item))
+            self._md['pkglist'].append(data)
+
+    def _parse_package(self, elem):
+        """
+        Parse an individual package::
+            <!ELEMENT package (filename, sum, reboot_suggested)>
+                <!ATTLIST package name CDATA #REQUIRED>
+                <!ATTLIST package version CDATA #REQUIRED>
+                <!ATTLIST package release CDATA #REQUIRED>
+                <!ATTLIST package arch CDATA #REQUIRED>
+                <!ATTLIST package epoch CDATA #REQUIRED>
+                <!ATTLIST package src CDATA #REQUIRED>
+            <!ELEMENT reboot_suggested (#PCDATA)>
+            <!ELEMENT filename (#PCDATA)>
+            <!ELEMENT sum (#PCDATA)>
+                <!ATTLIST sum type (md5|sha1) "sha1">
+        """
+        package = {}
+        for pkgfield in ('arch', 'epoch', 'name', 'version', 'release', 'src'):
+            package[pkgfield] = elem.attrib.get(pkgfield)
+
+        #  Bad epoch and arch data is the most common (missed) screwups.
+        # Deal with bad epoch data.
+        if not package['epoch'] or package['epoch'][0] not in '0123456789':
+            package['epoch'] = None
+
+        for child in elem:
+            if child.tag == 'filename':
+                package['filename'] = child.text
+            elif child.tag == 'sum':
+                package['sum'] = (child.attrib.get('type'), child.text)
+            elif child.tag == 'reboot_suggested':
+                self._md['reboot_suggested'] = True
+        return package
+
+    def xml(self):
+        """Generate the xml for this update notice object"""
+        msg = """
+<update from="%s" status="%s" type="%s" version="%s">
+  <id>%s</id>
+  <title>%s</title>
+  <release>%s</release>
+  <issued date="%s"/>
+  <description>%s</description>\n""" % (to_xml(self._md['from']),
+                to_xml(self._md['status']), to_xml(self._md['type']),
+                to_xml(self._md['version']), to_xml(self._md['update_id']),
+                to_xml(self._md['title']), to_xml(self._md['release']),
+                to_xml(self._md['issued'], attrib=True),
+                to_xml(self._md['description']))
+        if self._md['updated']:
+            # include the updated date in the generated xml
+            msg += """ <updated date="%s"/>\n""" % (to_xml(self._md['updated'], attrib=True))
+        if self._md['summary']:
+            msg += """  <summary>%s</summary>\n""" % (to_xml(self._md['summary']))
+        if self._md['solution']:
+            msg += """  <solution>%s</solution>\n""" % (to_xml(self._md['solution']))
+        if self._md['rights']:
+            msg += """  <rights>%s</rights>\n""" % (to_xml(self._md['rights']))        
+        if self._md['severity']:
+            msg += """  <severity>%s</severity>\n""" % (to_xml(self._md['severity']))
+
+        if self._md['references']:
+            msg += """  <references>\n"""
+            for ref in self._md['references']:
+                if ref['title']:
+                    msg += """    <reference href="%s" id="%s" title="%s" type="%s"/>\n""" % (
+                    to_xml(ref['href'], attrib=True), to_xml(ref['id'], attrib=True),
+                    to_xml(ref['title'], attrib=True), to_xml(ref['type'], attrib=True))
+                else:
+                    msg += """    <reference href="%s" id="%s"  type="%s"/>\n""" % (
+                    to_xml(ref['href'], attrib=True), to_xml(ref['id'], attrib=True),
+                    to_xml(ref['type'], attrib=True))
+
+            msg += """  </references>\n"""
+        
+        if self._md['pkglist']:
+            msg += """  <pkglist>\n"""
+            for coll in self._md['pkglist']:
+                msg += """    <collection short="%s">\n      <name>%s</name>\n""" % (
+                      to_xml(coll['short'], attrib=True),
+                      to_xml(coll['name']))
+  
+                for pkg in coll['packages']:
+                    msg += """      <package arch="%s" name="%s" release="%s" src="%s" version="%s" epoch="%s">
+        <filename>%s</filename>
+      </package>\n""" % (to_xml(pkg['arch'], attrib=True),
+                                to_xml(pkg['name'], attrib=True),
+                                to_xml(pkg['release'], attrib=True),
+                                to_xml(pkg['src'], attrib=True),
+                                to_xml(pkg['version'], attrib=True),
+                                to_xml(pkg['epoch'] or '0', attrib=True),
+                                to_xml(pkg['filename']))
+                msg += """    </collection>\n"""
+            msg += """  </pkglist>\n"""
+        msg += """</update>\n"""
+        return msg
+
+class RepoMDNotFound(Exception):
+    pass
+
+
+class ContentSource(object):
+
+    def __init__(self, url, name, yumsrc_conf=YUMSRC_CONF, org="1", channel_label="",
+                 no_mirrors=False, ca_cert_file=None, client_cert_file=None,
+                 client_key_file=None):
+        self.url = url
+        self.name = name
+        self.yumbase = yum.YumBase()					#DNFPROJECT
+        self.dnfbase_DNF = dnf.Base()
+        self.yumbase.preconf.fn = yumsrc_conf				#DNFPROJECT
+        self.dnfbase_DNF.conf.read(yumsrc_conf)
+        if not os.path.exists(yumsrc_conf):
+            self.yumbase.preconf.fn = '/dev/null'			#DNFPROJECT
+            self.dnfbase_DNF.conf.read('/dev/null')
+#        self.dnfbase_DNF.read_all_repos()				# STEFAN: Double check if required.
+        self.configparser = ConfigParser()
+        self.configparser_DNF = ConfigParser_DNF()	# Reading config file directly as dnf only ready MAIN section.
+        self.configparser_DNF.setSubstitutions( dnf.Base().conf.substitutions)
+        self.configparser_DNF.read(yumsrc_conf)
+        if org:
+            self.org = org
+        else:
+            self.org = "NULL"
+
+        self.proxy_addr = None
+        self.proxy_user = None
+        self.proxy_pass = None
+        self.authtoken = None
+
+        # read the proxy configuration
+        # /etc/rhn/rhn.conf has more priority than yum.conf
+        initCFG('server.satellite')
+
+        # keep authtokens for mirroring
+        (_scheme, _netloc, _path, query, _fragid) = urlparse.urlsplit(url)
+        if query:
+            self.authtoken = query
+
+        if CFG.http_proxy:
+            self.proxy_addr = CFG.http_proxy
+            self.proxy_user = CFG.http_proxy_username
+            self.proxy_pass = CFG.http_proxy_password
+        else:
+            db_cfg_DNF = self.configparser_DNF
+            section_name = None
+
+            if db_cfg_DNF.has_section(self.name):
+                section_name = self.name
+            elif db_cfg_DNF.has_section(channel_label):
+                section_name = channel_label
+            elif db_cfg_DNF.has_section('main'):
+                section_name = 'main'
+
+            if section_name:
+                if db_cfg_DNF.has_option(section_name, option='proxy'):
+                    self.proxy_addr = db_cfg_DNF.get(section_name, option='proxy')
+
+                if db_cfg_DNF.has_option(section_name, 'proxy_username'):
+                    self.proxy_user = db_cfg_DNF.get(section_name, 'proxy_username')
+
+                if db_cfg_DNF.has_option(section_name, 'proxy_password'):
+                    self.proxy_pass = db_cfg_DNF.get(section_name, 'proxy_password')
+
+        self._authenticate(url)
+
+        # Check for settings in yum configuration files (for custom repos/channels only)
+
+        if org:
+            repos = self.yumbase.repos.repos					#DNFPROJECT
+            repos_DNF = self.dnfbase_DNF.repos
+        else:
+            repos = None							
+            repos_DNF = None							#DNFPROJECT
+        if repos and name in repos:
+            repo = repos[name]							
+            repo_DNF = repos_DNF[name]						#DNFPROJECT
+        elif repos and channel_label in repos:
+            repo = repos[channel_label]						
+            repo_DNF = repos_DNF[channel_label]					#DNFPROJECT
+            # In case we are using Repo object based on channel config, override it's id to name of the repo
+            # To not create channel directories in cache directory
+            repo.id = name
+        else:
+            # Not using values from config files
+            repo = yum.yumRepo.YumRepository(name)				#DNFPROJECT
+            repo_DNF = dnf.repo.Repo(name,self.dnfbase_DNF.conf)
+            repo.populate(self.configparser, name, self.yumbase.conf)		#DNFPROJECT
+            repo_DNF.repofile = yumsrc_conf					#STEFAN: Check out why orig uses self.yumbase.conf instead of yumsrc_conf
+            repo_DNF._populate(self.configparser_DNF, name,  yumsrc_conf)
+        self.repo = repo
+        self.repo_DNF = repo_DNF						#DNFPROJECT
+
+        self.setup_repo(repo, no_mirrors, ca_cert_file, client_cert_file, client_key_file)
+        self.setup_repo_DNF(repo_DNF, no_mirrors, ca_cert_file, client_cert_file, client_key_file)
+        self.num_packages = 0
+        self.num_excluded = 0
+        self.groupsfile = None
+        self.number_of_packages_DNF()				#STEFAN for debugging
+
+    def __del__(self):
+        # close log files for yum plugin
+        for handler in logging.getLogger("yum.filelogging").handlers:
+            handler.close()
+        # Logging cannot be reduced to exclude file logging in dnf. So this is not required anymore.
+        self.repo.close()
+
+    def _authenticate(self, url):
+        pass
+
+    @staticmethod					#DNFPROJECT
+    def interrupt_callback(*args, **kwargs):  # pylint: disable=W0613	#DNFPROJECT
+        # Just re-raise					#DNFPROJECT
+        e = sys.exc_info()[1]				#DNFPROJECT
+        raise e						#DNFPROJECT
+
+    def setup_repo(self, repo, no_mirrors, ca_cert_file, client_cert_file, client_key_file):
+        print "STEFAN setup_repo"
+        """Fetch repository metadata"""
+        repo.cache = 0
+        repo.mirrorlist = self.url
+        repo.baseurl = [self.url]
+        repo.basecachedir = os.path.join(CACHE_DIR, self.org)
+        # base_persistdir have to be set before pkgdir
+        if hasattr(repo, 'base_persistdir'):
+            repo.base_persistdir = repo.basecachedir
+
+        pkgdir = os.path.join(CFG.MOUNT_POINT, CFG.PREPENDED_DIR, self.org, 'stage')
+        if not os.path.isdir(pkgdir):
+            fileutils.makedirs(pkgdir, user='apache', group='apache')
+        repo.pkgdir = pkgdir
+        repo.sslcacert = ca_cert_file
+        repo.sslclientcert = client_cert_file
+        repo.sslclientkey = client_key_file
+        repo.proxy = None
+        repo.proxy_username = None
+        repo.proxy_password = None
+
+        if "file://" in self.url:
+            repo.copy_local = 1
+
+        if self.proxy_addr:
+            repo.proxy = self.proxy_addr if '://' in self.proxy_addr else 'http://' + self.proxy_addr
+            repo.proxy_username = self.proxy_user
+            repo.proxy_password = self.proxy_pass
+
+        # Do not try to expand baseurl to other mirrors
+        if no_mirrors:
+            repo.urls = repo.baseurl
+            # Make sure baseurl ends with / and urljoin will work correctly
+            if repo.urls[0][-1] != '/':
+                repo.urls[0] += '/'
+        else:
+            warnings = YumWarnings()
+            warnings.disable()
+            try:
+                repo.baseurlSetup()
+            except:
+                warnings.restore()
+                raise
+            warnings.restore()
+            # if self.url is metalink it will be expanded into
+            # real urls in repo.urls and also save this metalink
+            # in begin of the url list ("for repolist -v ... or anything else wants to know the baseurl")
+            # Remove it from the list, we don't need it to download content of repo
+            repo.urls = [url for url in repo.urls if '?' not in url]
+        repo.interrupt_callback = self.interrupt_callback
+        repo.setup(0)
+
+
+    def setup_repo_DNF(self, repo, no_mirrors, ca_cert_file, client_cert_file, client_key_file):
+        print "STEFAN setup_repo_DNF"
+        """Fetch repository metadata"""
+        repo.metadata_expire=0
+        repo.mirrorlist = self.url
+        repo.baseurl = [self.url]
+        repo.cachedir = os.path.join(CACHE_DIR, self.org)
+
+        pkgdir = os.path.join(CFG.MOUNT_POINT, CFG.PREPENDED_DIR, self.org, 'stage')
+        if not os.path.isdir(pkgdir):
+            fileutils.makedirs(pkgdir, user='apache', group='apache')
+        repo.pkgdir = pkgdir				# STEFAN: Is set but does not show up in config
+        repo.sslcacert = ca_cert_file
+        repo.sslclientcert = client_cert_file
+        repo.sslclientkey = client_key_file
+        repo.proxy = None
+        repo.proxy_username = None
+        repo.proxy_password = None
+
+        if self.proxy_addr:
+            repo.proxy = self.proxy_addr if '://' in self.proxy_addr else 'http://' + self.proxy_addr
+            repo.proxy_username = self.proxy_user
+            repo.proxy_password = self.proxy_pass
+
+
+        # Do not try to expand baseurl to other mirrors
+        if no_mirrors:
+            repo.urls = repo.baseurl
+            repo.mirrorlist = ""
+            # Make sure baseurl ends with / and urljoin will work correctly
+            if repo.urls[0][-1] != '/':
+                repo.urls[0] += '/'
+
+        self.dnfbase_DNF.repos.add(repo)
+        self.repoid = repo.id				#DNF Added repo ID to identify Repo in future
+        self.dnfbase_DNF.repos[self.repoid].load()
+
+
+        if not no_mirrors:
+            self.dnfbase_DNF.repos[self.repoid].urls = self.clean_urls(self.dnfbase_DNF.repos[self.repoid]._repo.getMirrors())
+
+    def clean_urls(self, urls):
+        """
+        Filters a url schema for http, https, ftp, file only.
+        :return: urllist (string)
+        """
+        cleaned = []
+        for url in urls:
+            s = dnf.pycomp.urlparse.urlparse(url)[0]
+            if s in ('http', 'ftp', 'file', 'https'):
+                cleaned.append(url)
+        return cleaned
+
+
+
+
+    def number_of_packages_DNF(self):				# does not seem to be used...
+        for dummy_index in range(3):
+            try:
+                self.dnfbase_DNF.fill_sack(load_system_repo=False)#,load_available_repos=True)
+                break
+            except RepoError:
+                pass
+        print "STEFAN2 number_of_packages_DNF"
+        print(len(self.dnfbase_DNF.sack.query()))
+        return len(self.dnfbase_DNF.sack)
+
+
+    def raw_list_packages(self, filters=None):
+        for dummy_index in range(3):
+            try:
+                self.dnfbase_DNF.fill_sack(load_system_repo=False,load_available_repos=True)
+                break
+            except RepoError:
+                pass
+
+        rawpkglist = self.dnfbase_DNF.sack.query().run()
+        self.num_packages = len(rawpkglist)
+
+        if not filters:
+            filters = []
+            # if there's no include/exclude filter on command line or in database
+            for p in self.dnfbase_DNF.repos[self.repoid].includepkgs:
+                filters.append(('+', [p]))
+            for p in self.dnfbase_DNF.repos[self.repoid].exclude:
+                filters.append(('-', [p]))
+        print filters
+        if filters:
+            rawpkglist = self._filter_packages(rawpkglist, filters)
+            rawpkglist = self._get_package_dependencies_DNF(self.dnfbase_DNF.sack, rawpkglist)
+            self.num_excluded = self.num_packages - len(rawpkglist)
+
+        for pack in rawpkglist:
+            pack.packagesize = pack.downloadsize
+            pack.checksum_type = pack.returnIdSum()[0]
+            pack.checksum = pack.returnIdSum()[1]
+        return rawpkglist
+
+
+    def list_packages_DNF(self, filters, latest):			#STEFAN in use by reposync.py # DNF VERSION
+        """ list packages"""
+        print "STEFAN list_packages_DNF"
+        self.dnfbase_DNF.fill_sack(load_system_repo=False,load_available_repos=True)
+        pkglist = self.dnfbase_DNF.sack.query()
+        self.num_packages = len(pkglist)
+        if latest:
+            pkglist = pkglist.latest()
+        pkglist = list(dict.fromkeys(pkglist))                          # Filter out duplicates
+
+        if not filters:
+            # if there's no include/exclude filter on command line or in database
+            # check repository config file
+            for p in self.dnfbase_DNF.repos[self.repoid].includepkgs:
+                filters.append(('+', [p]))
+            for p in self.dnfbase_DNF.repos[self.repoid].exclude:
+                filters.append(('-', [p]))
+# STEFAN check why optional package has wrong format
+        filters = self._expand_package_groups(filters)
+        if filters:
+            pkglist = self._filter_packages(pkglist, filters)
+            pkglist = self._get_package_dependencies_DNF(self.dnfbase_DNF.sack, pkglist)
+
+            self.num_excluded = self.num_packages - len(pkglist)
+        to_return = []
+        for pack in pkglist:
+            if pack.arch == 'src':
+                continue
+            new_pack = ContentPackage()
+            new_pack.setNVREA(pack.name, pack.version, pack.release,
+                              pack.epoch, pack.arch)
+            new_pack.unique_id = pack
+            new_pack.checksum_type = pack.returnIdSum()[0]
+            if new_pack.checksum_type == 'sha':
+                new_pack.checksum_type = 'sha1'
+            new_pack.checksum = pack.returnIdSum()[1]
+            to_return.append(new_pack)
+#        pack.load_checksum_from_header()
+#        print to_return[0].a_pkg.checksum_type, to_return[0].a_pkg.checksum 
+        print "STEFAN list_packages_DNF end"
+        return to_return
+
+
+    def list_packages(self, filters, latest):                   #DNFPROJECT
+        """ list packages"""
+        filters2 = copy.deepcopy(filters)
+        print "STEFAN list_packages"
+        self.repo.getPackageSack().populate(self.repo, 'metadata', None, 0)
+        pkglist = ListPackageSack(self.repo.getPackageSack().returnPackages())
+        self.num_packages = len(pkglist)
+        if latest:
+            pkglist = pkglist.returnNewestByNameArch()
+        pkglist = yum.misc.unique(pkglist)
+        pkglist.sort(self._sort_packages)
+
+        if not filters:
+            # if there's no include/exclude filter on command line or in database
+            # check repository config file
+            for p in self.repo.includepkgs:
+                filters.append(('+', [p]))
+            for p in self.repo.exclude:
+                filters.append(('-', [p]))
+        filters = self._expand_package_groups_YUM(filters)
+        if filters:
+            pkglist = self._filter_packages_YUM(pkglist, filters)
+            pkglist = self._get_package_dependencies(self.repo.getPackageSack(), pkglist)
+
+            self.num_excluded = self.num_packages - len(pkglist)
+        to_return = []
+        for pack in pkglist:
+            if pack.arch == 'src':
+                continue
+            new_pack = ContentPackage()
+            new_pack.setNVREA(pack.name, pack.version, pack.release,
+                              pack.epoch, pack.arch)
+            new_pack.unique_id = pack
+            new_pack.checksum_type = pack.checksums[0][0]
+            if new_pack.checksum_type == 'sha':
+                new_pack.checksum_type = 'sha1'
+            new_pack.checksum = pack.checksums[0][1]
+            to_return.append(new_pack)
+        print to_return[0].name, to_return[0].version, to_return[0].release, to_return[0].epoch, to_return[0].arch, to_return[0].checksum, to_return[0].checksum_type
+        print "STEFAN list_packages end"
+        self.list_packages_DNF(filters2, latest)
+        print "---------------------------------------"
+        return to_return
+
+
+
+    @staticmethod
+    def _sort_packages(pkg1 ,pkg2):			# loeschen-Not required
+        """sorts a list of yum package objects by name"""
+        if pkg1.name > pkg2.name:
+            return 1
+        elif pkg1.name == pkg2.name:
+            return 0
+        else:
+            return -1
+
+    @staticmethod
+    def _find_comps_type_YUM(comps_type, environments, groups, name):		#DNFPROJECT
+#        print "STEFAN _find_comps_type_YUM"
+        # Finds environment or regular group by name or label
+        found = None
+        if comps_type == "environment":
+            for e in environments:
+                if e.environmentid == name or e.name == name:
+                    found = e
+                    break
+        elif comps_type == "group":
+            for g in groups:
+#                print g.groupid
+#                print g.name
+                if g.groupid == name or g.name == name:
+                    found = g
+                    break
+#        print "STEFAN _find_comps_type_YUM end"
+        return found
+
+    @staticmethod
+    def _find_comps_type(comps_type, environments, groups, name):
+#        print "STEFAN _find_comps_type"
+        # Finds environment or regular group by name or label
+        found = None
+        if comps_type == "environment":
+            for e in environments:
+                if e.id == name or e.name == name:
+                    found = e
+                    break
+        elif comps_type == "group":
+            for g in groups:
+                if g.id == name or g.name == name:
+                    found = g
+                    break
+#        print "STEFAN _find_comps_type end"
+        return found
+
+    def _expand_comps_type(self, comps_type, environments, groups, filters,yum=False):		# STEFAN stopped here
+#        print "STEFAN _expand_comps_type"
+        new_filters = []
+        # Rebuild filter list
+        for sense, pkg_list in filters:
+            new_pkg_list = []
+            for pkg in pkg_list:
+                # Package group id
+                if pkg and pkg[0] == '@':
+                    group_name = pkg[1:].strip()
+                    if yum:                            # STEFAN: Remove YUM if statement
+                        found = self._find_comps_type_YUM(comps_type, environments, groups, group_name)
+                    else:
+                        found = self._find_comps_type(comps_type, environments, groups, group_name)
+                    if found and comps_type == "environment":
+                        # Save expanded groups to the package list
+                        new_pkg_list.extend(['@' + grp for grp in found.allgroups])
+                    elif found and comps_type == "group":
+                        # Replace with package list, simplified to not evaluate if packages are default, optional etc.
+                         for package in found.packages:
+                             new_pkg_list.append(str(package.name))
+                    else:
+                        # Invalid group, save group id back
+                        new_pkg_list.append(pkg)
+                else:
+                    # Regular package
+                    new_pkg_list.append(pkg)
+            if new_pkg_list:
+                new_filters.append((sense, new_pkg_list))
+#        print "STEFAN _expand_comps_type end"
+        return new_filters
+
+    def _expand_comps_type_YUM(self, comps_type, environments, groups, filters,yum=False):
+#        print "STEFAN _expand_comps_type_YUM"
+        new_filters = []
+        # Rebuild filter list
+        for sense, pkg_list in filters:
+            new_pkg_list = []
+            for pkg in pkg_list:
+                # Package group id
+                if pkg and pkg[0] == '@':
+                    group_name = pkg[1:].strip()
+                    if yum:                            # STEFAN: Remove YUM if statement
+                        found = self._find_comps_type_YUM(comps_type, environments, groups, group_name)
+                    else:
+                        found = self._find_comps_type(comps_type, environments, groups, group_name)
+                    if found and comps_type == "environment":
+                        # Save expanded groups to the package list
+                        new_pkg_list.extend(['@' + grp for grp in found.allgroups])
+                    elif found and comps_type == "group":
+                        # Replace with package list, simplified to not evaluate if packages are default, optional etc.
+                        new_pkg_list.extend(found.packages)
+                    else:
+                        # Invalid group, save group id back
+                        new_pkg_list.append(pkg)
+                else:
+                    # Regular package
+                    new_pkg_list.append(pkg)
+            if new_pkg_list:
+                new_filters.append((sense, new_pkg_list))
+#        print "STEFAN _expand_comps_type_YUM end"
+        return new_filters
+
+
+    def _expand_package_groups(self, filters):
+#        print "STEFAN _expand_package_groups"
+        if not self.groupsfile:
+            return filters
+        comps = dnf.comps.Comps()
+        comps._add_from_xml_filename(self.groupsfile)
+        groups = comps.groups
+        if hasattr(comps, 'environments'):
+            # First expand environment groups, then regular groups
+            environments = comps.environments
+            filters = self._expand_comps_type("environment", environments, groups, filters)
+        else:
+            environments = []
+        filters = self._expand_comps_type("group", environments, groups, filters)
+#        print "STEFAN _expand_package_groups end"
+        return filters
+
+    def _expand_package_groups_YUM(self, filters):
+#        print "STEFAN _expand_package_groups_YUM"
+        if not self.groupsfile:
+            return filters
+        comps = Comps()
+        comps.add(self.groupsfile)
+        groups = comps.get_groups()
+
+        if hasattr(comps, 'get_environments'):
+            # First expand environment groups, then regular groups
+            environments = comps.get_environments()
+            filters = self._expand_comps_type_YUM("environment", environments, groups, filters, yum=True)
+        else:
+            environments = []
+        filters = self._expand_comps_type_YUM("group", environments, groups, filters, yum=True)
+#        print "STEFAN _expand_package_groups_YUM end"
+        return filters
+
+    def __parsePackages(self,pkgSack, pkgs):
+        """
+         Substitute for yum's parsePackages.
+         The function parses a list of package names and returns their Hawkey
+         list if it exists in the package sack. Inputs are a package sack and
+         a list of packages. Returns a list of latest existing packages in
+         Hawkey format.
+        """
+
+        matches = set()
+        for pkg in pkgs:
+            hkpkgs = set()
+            subject = dnf.subject.Subject(pkg)
+            hkpkgs |= set(subject.get_best_selector(pkgSack, obsoletes=True).matches())
+            if len(matches) == 0:
+                matches = hkpkgs
+            else:
+                matches |= hkpkgs
+        result = list(matches)
+        a = pkgSack.query().available() # Load all available packages from the repository
+        result = a.filter(pkg=result).latest().run()
+        return result
+
+#    @staticmethod
+    def _filter_packages(self, packages, filters):
+        print "STEFAN _filter_packages"
+        """ implement include / exclude logic
+            filters are: [ ('+', includelist1), ('-', excludelist1),
+                           ('+', includelist2), ... ]
+        """
+        if filters is None:
+            return []
+
+        selected = []
+        excluded = []
+        if filters[0][0] == '-':
+            # first filter is exclude, start with full package list
+            # and then exclude from it
+            selected = packages
+        else:
+            excluded = packages
+        sack = self.dnfbase_DNF.sack 
+        for filter_item in filters:
+            sense, pkg_list = filter_item
+            convertFilterToPackagelist = self.__parsePackages(
+                sack, pkg_list)
+            if sense == '+':
+                # include
+                matched = list()
+                for v1 in convertFilterToPackagelist:          # Use only packages that are in pkg_list
+                    for v2 in excluded:
+                        if v1 == v2 and v1 not in matched:
+                            matched.append(v1)
+                allmatched = list(dict.fromkeys( matched ))    # remove duplicates
+                selected = list(dict.fromkeys( selected + allmatched ) )   # remove duplicates
+                for pkg in allmatched:
+                    if pkg in excluded:
+                        excluded.remove(pkg)
+            elif sense == '-':
+                # exclude
+                matched = list()
+                for v1 in convertFilterToPackagelist:          # Use only packages that are in pkg_list
+                    for v2 in selected:
+                        if v1 == v2 and v1 not in matched:
+                            matched.append(v1)
+                allmatched = list(dict.fromkeys(matched))      # remove duplicates
+                for pkg in allmatched:
+                    if pkg in selected:
+                        selected.remove(pkg)
+                allmatched = list(allmatched)
+                excluded = excluded + allmatched
+            else:
+                raise MarkingErrors("Invalid filter sense: '%s'" % sense)	# STEFAN: Not sure
+        print "STEFAN _filter_packages end"
+        return selected
+
+    @staticmethod
+    def _filter_packages_YUM(packages, filters):
+        print "STEFAN _filter_packages_YUM"
+        """ implement include / exclude logic
+            filters are: [ ('+', includelist1), ('-', excludelist1),
+                           ('+', includelist2), ... ]
+        """
+        if filters is None:
+            return []
+
+        selected = []
+        excluded = []
+        if filters[0][0] == '-':
+            # first filter is exclude, start with full package list
+            # and then exclude from it
+            selected = packages
+        else:
+            excluded = packages
+
+        for filter_item in filters:
+            sense, pkg_list = filter_item
+            if sense == '+':
+                # include
+                exactmatch, matched, _unmatched = yum.packages.parsePackages(
+                    excluded, pkg_list)
+                allmatched = yum.misc.unique(exactmatch + matched)
+                selected = yum.misc.unique(selected + allmatched)
+                for pkg in allmatched:
+                    if pkg in excluded:
+                        excluded.remove(pkg)
+            elif sense == '-':
+                # exclude
+                exactmatch, matched, _unmatched = yum.packages.parsePackages(
+                    selected, pkg_list)
+                allmatched = yum.misc.unique(exactmatch + matched)
+                for pkg in allmatched:
+                    if pkg in selected:
+                        selected.remove(pkg)
+                excluded = yum.misc.unique(excluded + allmatched)
+            else:
+                raise UpdateNoticeException("Invalid filter sense: '%s'" % sense)
+        print "STEFAN _filter_packages_YUM end"
+        return selected
+
+    def _get_package_dependencies(self, sack, packages):
+        self.yumbase.pkgSack = sack
+        known_deps = set()
+        resolved_deps = self.yumbase.findDeps(packages)
+        while resolved_deps:
+            next_level_deps = []
+            for deps in resolved_deps.values():
+                for _dep, dep_packages in deps.items():
+                    if _dep not in known_deps:
+                        next_level_deps.extend(dep_packages)
+                        packages.extend(dep_packages)
+                        known_deps.add(_dep)
+
+            resolved_deps = self.yumbase.findDeps(next_level_deps)
+
+        return yum.misc.unique(packages)
+
+
+    def __findDeps(self, pkgSack, pkgs):				#DNFPROJECT: New function
+#
+#        Input: Sack, list of packages
+#        Output: List of packages
+#
+
+        results = {}
+        a = pkgSack.query().available()
+        for pkg in pkgs:
+            results[pkg] = {}
+            reqs = pkg.requires
+            pkgresults = results[pkg]
+            for req in reqs:
+                if str(req).startswith('rpmlib('):
+                    continue
+                satisfiers = []
+                for po in a.filter(provides = req).latest():
+                    satisfiers.append(po)
+                pkgresults[req] = satisfiers
+        return results
+
+
+    def _get_package_dependencies_DNF(self, sack, packages):
+#        print "_get_package_dependencies_DNF"
+        self.dnfbase_DNF.pkgSack = sack
+        known_deps = set()
+        resolved_deps = self.__findDeps(self.dnfbase_DNF.pkgSack, packages)
+        while resolved_deps:
+            next_level_deps = []
+            for deps in resolved_deps.values():
+                for _dep, dep_packages in deps.items():
+                    if _dep not in known_deps:
+                        next_level_deps.extend(dep_packages)
+                        packages.extend(dep_packages)
+                        known_deps.add(_dep)
+
+            resolved_deps = self.__findDeps(self.dnfbase_DNF.pkgSack,next_level_deps)
+        return list(dict.fromkeys(packages))
+
+    def get_package(self, package, metadata_only=False):
+        """ get package """
+        pack = package.unique_id
+        check = (self.verify_pkg, (pack, 1), {})
+        if metadata_only:
+            # Include also data before header section
+            pack.hdrstart = 0
+            data = self.repo.getHeader(pack, checkfunc=check)
+        else:
+            data = self.repo.getPackage(pack, checkfunc=check)
+        return data
+
+    @staticmethod
+    def verify_pkg(_fo, pkg, _fail):
+        return pkg.verifyLocalPkg()
+
+    def clear_cache(self, directory=None, keep_repomd=False):
+        if directory is None:
+            directory = os.path.join(CACHE_DIR, self.org, self.name)
+
+        # remove content in directory
+        for item in os.listdir(directory):
+            path = os.path.join(directory, item)
+            if os.path.isfile(path) and not (keep_repomd and item == "repomd.xml"):
+                os.unlink(path)
+            elif os.path.isdir(path):
+                rmtree(path)
+
+        # restore empty directories
+        makedirs(directory + "/packages", int('0755', 8))
+        makedirs(directory + "/gen", int('0755', 8))
+
+    def get_updates(self):
+        print "get_updates"
+        if not self.dnfbase_DNF.repos[self.repoid].get_metadata_content("updateinfo"):
+           return []
+        um = YumUpdateMetadata()
+        um.add(self.dnfbase_DNF.repos[self.repoid], all_versions=True)
+        print "get_updates end"
+        return um.notices
+
+    def get_groups(self):
+# STEFAN: Verify why groups is not loaded
+        try:
+            groups = self.repo_DNF.get_metadata_path("group_gz")
+#            print self.dnfbase_DNF.repos[self.repoid] # STEFAN repo
+#            print type(self.dnfbase_DNF.repos[self.repoid])
+#            print self.repo_DNF._repo.getMetadataPath("group_gz")
+#            print type(self.dnfbase_DNF.repos[self.repoid].metadata)
+#            print self.dnfbase_DNF.repos[self.repoid].metadata
+#            quit()
+            if groups == "":
+                groups = self.repo_DNF.get_metadata_path("group")
+            if groups == "":
+                groups = None
+        except RepoError:
+            groups = None
+        return groups
+
+    def get_modules(self):
+        print "get_modules"
+        try:
+            modules = self.repo_DNF.get_metadata_content('modules')
+#retrieveMD('modules')
+            print modules
+        except Exception as e:
+ # RepoError:
+            modules = None
+            print type(e)
+            print e.args
+            print e
+        print "get_modules end"
+        return modules
+
+    def get_file(self, path, local_base=None):
+        try:
+            try:
+                temp_file = ""
+                if local_base is not None:
+                    target_file = os.path.join(local_base, path)
+                    target_dir = os.path.dirname(target_file)
+                    if not os.path.exists(target_dir):
+                        os.makedirs(target_dir, int('0755', 8))
+                    temp_file = target_file + '..download'
+                    if os.path.exists(temp_file):
+                        os.unlink(temp_file)
+                    downloaded = self.repo.grab.urlgrab(path, temp_file)
+                    os.rename(downloaded, target_file)
+                    return target_file
+                else:
+                    return self.repo.grab.urlread(path)
+            except URLGrabError:
+                return None
+        finally:
+            if os.path.exists(temp_file):
+                os.unlink(temp_file)
+        return None
+
+    def repomd_up_to_date(self):
+        repomd_old_path = os.path.join(self.repo.basecachedir, self.name, "repomd.xml")
+        # No cached repomd?
+        if not os.path.isfile(repomd_old_path):
+            return False
+        repomd_new_path = os.path.join(self.repo.basecachedir, self.name, "repomd.xml.new")
+        # Newer file not available? Don't do anything. It should be downloaded before this.
+        if not os.path.isfile(repomd_new_path):
+            return True
+        return (checksum.getFileChecksum('sha256', filename=repomd_old_path) ==
+                checksum.getFileChecksum('sha256', filename=repomd_new_path))
+
+    # Get download parameters for threaded downloader
+    def set_download_parameters(self, params, relative_path, target_file, checksum_type=None, checksum_value=None,
+                                bytes_range=None):
+        # Create directories if needed
+# STEFAN: repo.urls should contain all urls (resolved mirrors)
+        print "STEFAN set_download_parameters"
+        target_dir = os.path.dirname(target_file)
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir, int('0755', 8))
+
+        params['urls'] = self.dnfbase_DNF.repos[self.repoid].urls # self.repo.urls # self.dnfbase_DNF.repos[self.repoid].baseurl
+        params['relative_path'] = relative_path
+        params['authtoken'] = self.authtoken
+        params['target_file'] = target_file
+        params['ssl_ca_cert'] = self.dnfbase_DNF.repos[self.repoid].sslcacert
+        params['ssl_client_cert'] = self.dnfbase_DNF.repos[self.repoid].sslclientcert
+        params['ssl_client_key'] = self.dnfbase_DNF.repos[self.repoid].sslclientkey
+        params['checksum_type'] = checksum_type
+        params['checksum'] = checksum_value
+        params['bytes_range'] = bytes_range
+        params['proxy'] = self.dnfbase_DNF.repos[self.repoid].proxy
+        params['proxy_username'] = self.dnfbase_DNF.repos[self.repoid].proxy_username
+        params['proxy_password'] = self.dnfbase_DNF.repos[self.repoid].proxy_password
+        params['http_headers'] = dict( self.dnfbase_DNF.repos[self.repoid].get_http_headers() ) # self.repo.http_headers
+        # Older urlgrabber compatibility
+        params['proxies'] = get_proxies(self.dnfbase_DNF.repos[self.repoid].proxy, self.dnfbase_DNF.repos[self.repoid].proxy_username, self.dnfbase_DNF.repos[self.repoid].proxy_password)
+
+    # Simply load primary and updateinfo path from repomd
+    def get_metadata_paths(self):
+        def get_location(data_item):
+            for sub_item in data_item:
+                if sub_item.tag.endswith("location"):
+                    return sub_item.attrib.get("href")
+            return None
+
+        def get_checksum(data_item):
+            for sub_item in data_item:
+                if sub_item.tag.endswith("checksum"):
+                    return sub_item.attrib.get("type"), sub_item.text
+            return None
+
+        repomd_path = os.path.join(self.repo.basecachedir, self.name, "repomd.xml")
+        if not os.path.isfile(repomd_path):
+            raise RepoMDNotFound(repomd_path)
+        repomd = open(repomd_path, 'rb')
+        files = {}
+        for _event, elem in iterparse(repomd):
+            if elem.tag.endswith("data"):
+                if elem.attrib.get("type") == "primary_db":
+                    files['primary'] = (get_location(elem), get_checksum(elem))
+                elif elem.attrib.get("type") == "primary" and 'primary' not in files:
+                    files['primary'] = (get_location(elem), get_checksum(elem))
+                elif elem.attrib.get("type") == "updateinfo":
+                    files['updateinfo'] = (get_location(elem), get_checksum(elem))
+                elif elem.attrib.get("type") == "group_gz":
+                    files['group'] = (get_location(elem), get_checksum(elem))
+                elif elem.attrib.get("type") == "group" and 'group' not in files:
+                    files['group'] = (get_location(elem), get_checksum(elem))
+                elif elem.attrib.get("type") == "modules":
+                    files['modules'] = (get_location(elem), get_checksum(elem))
+        repomd.close()
+        return files.values()

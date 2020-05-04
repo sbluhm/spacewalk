@@ -1,0 +1,64 @@
+Solving Dependencies (1): 
+________________________________________
+######################################## - complete
+({'eclipse-platform = 1:4.11-4.fc30': [['eclipse-platform', '4.11', '1', '4.fc30', 'x86_64']]}, {'osgi(org.junit.jupiter.engine)': [], 'osgi(org.junit.jupiter.api)': [], 'junit5 >= 5.4.0': [], 'junit >= 4.12': [], 'osgi(org.junit)': [], 'osgi(org.junit.vintage.engine)': [], 'javapackages-filesystem': [], 'osgi(org.junit.jupiter.params)': [], 'osgi(org.junit.platform.launcher)': [], 'osgi(org.junit.platform.commons)': [], 'osgi(org.junit.platform.engine)': [], 'osgi(org.hamcrest.core)': [], 'osgi(org.junit.platform.runner)': [], 'osgi(org.junit.platform.suite.api)': [], 'java-headless >= 1:1.8': [], 'osgi(org.junit.jupiter.migrationsupport)': [], 'osgi(org.opentest4j)': [], 'osgi(org.apiguardian)': []})
+Printable dependency Results: 
+
+ 
+ dependency: osgi(org.hamcrest.core) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit) 
+   Unsatisfied dependency 
+
+ dependency: java-headless >= 1:1.8 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.platform.suite.api) 
+   Unsatisfied dependency 
+
+ dependency: junit >= 4.12 
+   Unsatisfied dependency 
+
+ dependency: junit5 >= 5.4.0 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.jupiter.migrationsupport) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.platform.commons) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.vintage.engine) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.jupiter.engine) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.platform.engine) 
+   Unsatisfied dependency 
+
+ dependency: javapackages-filesystem 
+   Unsatisfied dependency 
+
+ dependency: eclipse-platform = 1:4.11-4.fc30 
+   provider: eclipse-platform.x86_64 1:4.11-4.fc30
+
+ dependency: osgi(org.junit.platform.runner) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.jupiter.params) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.platform.launcher) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.jupiter.api) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.apiguardian) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.opentest4j) 
+   Unsatisfied dependency 
+

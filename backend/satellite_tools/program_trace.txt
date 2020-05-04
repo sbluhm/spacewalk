@@ -1,0 +1,37 @@
+/09:17:33 ======================================
+/09:17:33 | Channel: test11
+/09:17:33 ======================================
+/09:17:33 Sync of channel started.
+/09:17:33 
+/09:17:33   Processing repository with URL: http://msync.centos.org/centos/8/PowerTools/x86_64/kickstart/
+/class YumWarnings
+/class YumUpdateMetadata(UpdateMetadata)
+/class RepoMDNotFound(Exception)
+/class ContentSource(object)
+/ContentSource.__init__
+/ContentSource.setup_repo
+/YumWarnings.__init__
+/YumWarnings.disable
+/YumWarnings.restore
+/ContentSource.clear_cache
+/ContentSource.get_groups
+/09:17:33 
+/09:17:33   Importing comps file comps.xml.
+ContentSource.get_modules
+09:17:33 
+09:17:33   Importing modules file 183a019740764f2ae41be34171195458a3f081ecffb062791cbf766ade953065-modules.yaml.gz.
+ContentSource.list_packages
+/ContentSource._sort_packages(12k mal) # löschen/Not required
+/ContentSource._expand_package_groups
+/ContentSource._expand_comps_type
+/ContentSource._filter_packages
+/ContentSource._get_package_dependencies
+09:17:35     Packages in repo:              1959
+09:17:35     Packages passed filter rules:  1957
+09:17:38     No new packages to sync.
+ContentSource.get_updates
+09:17:38 
+09:17:38   Errata in repo: 0.
+09:17:38 Sync of channel completed in 0:00:04.
+ContentSource.__del__
+09:17:38 Total time: 0:00:04

@@ -1,0 +1,67 @@
+DepSolver: Initialising
+{'id': 'stefan', 'relative_path': '/root/spacewalk-support/packages'}
+DepSolver: LoadPackages
+Solving Dependencies (1): 
+________________________________________
+######################################## - complete
+{'eclipse-platform = 1:4.11-4.fc30': [[u'eclipse-platform', u'4.11', 1L, u'4.fc30', u'x86_64']]}
+Printable dependency Results: 
+
+ 
+ dependency: javapackages-filesystem 
+   Unsatisfied dependency 
+
+ dependency: java-headless >= 1:1.8 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.apiguardian) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.jupiter.params) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.platform.runner) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.platform.suite.api) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.opentest4j) 
+   Unsatisfied dependency 
+
+ dependency: junit5 >= 5.4.0 
+   Unsatisfied dependency 
+
+ dependency: eclipse-platform = 1:4.11-4.fc30 
+   provider: eclipse-platform-1:4.11-4.fc30.x86_64
+
+ dependency: osgi(org.junit.jupiter.migrationsupport) 
+   Unsatisfied dependency 
+
+ dependency: junit >= 4.12 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.hamcrest.core) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.jupiter.api) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.jupiter.engine) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.platform.commons) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.platform.engine) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.platform.launcher) 
+   Unsatisfied dependency 
+
+ dependency: osgi(org.junit.vintage.engine) 
+   Unsatisfied dependency 
+

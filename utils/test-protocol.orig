@@ -1,0 +1,38 @@
+[root@dev3 utils]# ./testcase.sh 
+Reading repository information.
+Using issue_date.
+
+By continuing the following channels will be created: 
+test22
+
+Continue with channel creation (y/n)?y
+
+Cloning test11 to test22 with original package set.
+Copying repodata, please wait.
+Stefan 1
+[{'id': 'test11', 'relative_path': '/var/cache/rhn/repodata/test11'}]
+Stefan 2
+Solving Dependencies (1934): 
+________________________________________
+######################################## - complete
+Processing Dependencies:
+________________________________________
+######################################## - complete
+Dependencies added, looking for new dependencies
+Solving Dependencies (25): 
+________________________________________
+######################################## - complete
+Processing Dependencies:
+________________________________________
+######################################## - complete
+Stefan 3
+25 RPM(s) added to test22 to resolve dependencies.
+1 errata added to test22 to resolve dependencies.
+Please see /var/log/rhn/errata-clone.log for details.
+Stefan 4
+
+By continuing the following will be cloned:
+  test11 -> test22  (0/0 Errata)
+
+No errata to clone, checking removelist.
+

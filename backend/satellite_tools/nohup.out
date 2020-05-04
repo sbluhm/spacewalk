@@ -1,0 +1,76 @@
+02:45:45 ======================================
+02:45:45 | Channel: test11
+02:45:45 ======================================
+02:45:45 Sync of channel started.
+02:45:45 
+02:45:45   Processing repository with URL: http://mirror.centos.org/centos/8/BaseOS/x86_64/os/
+CentOS_8_Base_OS_x86_64
+test11
+STEFAN setup_repo
+STEFAN Digest
+STEFAN here
+
+STEFAN baseurl
+['http://mirror.centos.org/centos/8/BaseOS/x86_64/os/']
+STEFAN urls
+STEFAN Completed
+02:45:47 ERROR: /var/cache/rhn/reposync/1/CentOS_8_Base_OS_x86_64/repomd.xml
+02:45:48 Sync of channel completed in 0:00:02.
+02:45:48 Total time: 0:00:02
+02:49:06 ======================================
+02:49:06 | Channel: test11
+02:49:06 ======================================
+02:49:06 Sync of channel started.
+02:49:06 
+02:49:06   Processing repository with URL: http://mirror.centos.org/centos/8/BaseOS/x86_64/os/
+CentOS_8_Base_OS_x86_64
+test11
+STEFAN setup_repo
+STEFAN Digest
+STEFAN here
+
+STEFAN baseurl
+['http://mirror.centos.org/centos/8/BaseOS/x86_64/os/']
+STEFAN urls
+STEFAN Completed
+02:49:07 ERROR: 'ConfigRepo' object has no attribute 'cachedir'
+02:49:07 Sync of channel completed in 0:00:01.
+02:49:07 Total time: 0:00:01
+02:50:25 ======================================
+02:50:25 | Channel: test11
+02:50:25 ======================================
+02:50:25 Sync of channel started.
+02:50:25 
+02:50:25   Processing repository with URL: http://mirror.centos.org/centos/8/BaseOS/x86_64/os/
+CentOS_8_Base_OS_x86_64
+test11
+STEFAN setup_repo
+STEFAN Digest
+STEFAN here
+
+STEFAN baseurl
+['http://mirror.centos.org/centos/8/BaseOS/x86_64/os/']
+STEFAN urls
+STEFAN Completed
+STEFAN get_metadata_paths
+STEFAN2 number_of_packages_DNF
+1663
+get_groups start
+get_groups stop
+/var/cache/rhn/reposync/1/CentOS_8_Base_OS_x86_64-de5175b35c7c3fbf/repodata/d87e0d3af9edb863a8f2fb48a49b17b83d8fc4177ed4e7309765ef74ec00cca9-comps-BaseOS.x86_64.xml.xz
+REPOSYNC
+02:50:29 
+02:50:29   Importing comps file d87e0d3af9edb863a8f2fb48a49b17b83d8fc4177ed4e7309765ef74ec00cca9-comps-BaseOS.x86_64.xml.xz.
+650
+pretimestamp error in copy_metadata_file
+<spacewalk.satellite_tools.repo_plugins.yum_src. object at 0x7fc60abde3d0>
+1587532554
+file_timestamp
+1587532554
+REPOSYNC2
+get_modules should this perhaps just be the filename?
+get_modules end
+STEFAN list_packages_DNF
+02:50:30 ERROR: 'libcomps.Environment' object has no attribute 'allgroups'
+02:50:30 Sync of channel completed in 0:00:04.
+02:50:30 Total time: 0:00:04
