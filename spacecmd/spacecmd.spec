@@ -3,11 +3,11 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 %endif
 
-%if 0%{?fedora} || 0%{?rhel} == 7
+%if 0%{?fedora} || 0%{?rhel} >= 7
 %{!?pylint_check: %global pylint_check 1}
 %endif
 
-%if 0%{?fedora} || 0%{?suse_version} > 1320 || 0%{?rhel} >= 8
+%if 0%{?fedora} || 0%{?suse_version} > 1320 || 0%{?rhel} >= 7
 %global build_py3   1
 %global python_sitelib %{python3_sitelib}
 %endif
