@@ -1,4 +1,4 @@
-#!/usr/bin/python2 -u
+#!/usr/bin/python3 -u
 #
 # Copyright (c) 2008--2020 Red Hat, Inc.
 #
@@ -158,19 +158,19 @@ if __name__ == '__main__':
             need_exit = None
             if options.info:
                 if report.synopsis is not None:
-                    print report.synopsis
+                    print (report.synopsis)
                 else:
-                    print "No synopsis for report %s." % report_name
+                    print ("No synopsis for report %s." % report_name)
                 if report.description is not None:
-                    print
-                    print report.description
+                    print ()
+                    print (report.description)
                 need_exit = True
 
             if options.listfields or options.listfieldsinfo:
                 if options.info:
-                    print
-                    print "Fields in the report:"
-                    print
+                    print ()
+                    print ("Fields in the report:")
+                    print ()
 
                 for c in report.columns:
                     text = c
@@ -178,7 +178,7 @@ if __name__ == '__main__':
                         text = "    %s" % c
                     if options.listfieldsinfo and c in report.column_descriptions:
                         text = "%s: %s" % (text, report.column_descriptions[c])
-                    print text
+                    print (text)
                 need_exit = True
 
             if need_exit:
@@ -301,17 +301,17 @@ if __name__ == '__main__':
                         synopsis = report.synopsis
                     except:
                         None
-                    print "%s: %s" % (report_name, synopsis)
+                    print ("%s: %s" % (report_name, synopsis))
                 else:
-                    print report_name
+                    print (report_name)
 
     except KeyboardInterrupt:
         systemExit(-1, "\nUser interrupted process.")
-    except (rhnSQL.SQLError, rhnSQL.SQLSchemaError, rhnSQL.SQLConnectError), e:
+    except (rhnSQL.SQLError, rhnSQL.SQLSchemaError, rhnSQL.SQLConnectError) as e:
         # really a stub for better exception handling in the future.
         sys.stderr.write("SQL error occurred, traceback follows...\n")
         raise
-    except IOError, e:
+    except IOError as e:
         if e.errno == errno.EPIPE:
             sys.exit(0)
         else:
