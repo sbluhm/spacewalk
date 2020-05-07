@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 #
 # Utility for archiving/purging audit-log tables
 #
@@ -163,7 +163,7 @@ def list(opt):
     """List current state of all *_log tables found"""
     names = tables()
     for name in names:
-        print '%32s : %d' % (name, count(name))
+        print ('%32s : %d' % (name, count(name)))
 
 
 def archive(opt):
@@ -176,8 +176,8 @@ def archive(opt):
 
         try:
             f = open(outfilename, 'wb')
-        except IOError, e:
-            print 'FAILED to open output file [' + outfilename + ']'
+        except IOError as e:
+            print ('FAILED to open output file [' + outfilename + ']')
             sys.exit(1)
 
         writer = csv.writer(f)
@@ -194,7 +194,7 @@ def archive(opt):
                 row.append(rslts.get(col))
             writer.writerow(row)
             rows += 1
-        print '%32s : %d rows archived' % (name, rows)
+        print ('%32s : %d rows archived' % (name, rows))
         f.close()
 
 
@@ -205,7 +205,7 @@ def purge(opt):
     for name in names:
         del_str = _get_sql('PURGE_DATA') % {"ptable": name}
         stmt = rhnSQL.execute(del_str, tstamp=opt.purge_date)
-        print '%32s : %s rows remain' % (name, count(name))
+        print ('%32s : %s rows remain' % (name, count(name)))
         _log('%32s : %s rows remain' % (name, count(name)))
     rhnSQL.execute(_get_sql('PURGE_LOG_DATA'), tstamp=opt.purge_date)
     return
@@ -221,19 +221,19 @@ if __name__ == '__main__':
 
     rhnLog.initLOG(LOG_LOCATION)
     if rhnLog.LOG.real == 0:
-        print "Failed to access logfile " + LOG_LOCATION + " - exiting..."
-        print "(Try running as sudo)"
+        print ("Failed to access logfile " + LOG_LOCATION + " - exiting...")
+        print ("(Try running as sudo)")
         sys.exit(1)
 
     if options.purge:
-        print 'Starting counts:'
+        print ('Starting counts:')
         list(options)
-        print '...archiving'
+        print ('...archiving')
         rhnSQL.transaction('PURGE')
         archive(options)
-        print '...purging'
+        print ('...purging')
         purge(options)
         rhnSQL.commit()
     elif options.archive:
-        print 'Archiving...'
+        print ('Archiving...')
         archive(options)

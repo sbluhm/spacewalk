@@ -1,5 +1,5 @@
 %define rhnroot %{_prefix}/share/rhn
-%if (0%{?fedora} && 0%{?fedora} <30) || 0%{?rhel} == 7
+%if (0%{?fedora} && 0%{?fedora} <30) || 0%{?rhel} >= 7
 %{!?pylint_check: %global pylint_check 1}
 %endif
 
@@ -14,14 +14,14 @@ Source0:	https://github.com/spacewalkproject/spacewalk/archive/%{name}-%{version
 BuildArch:      noarch
 
 %if 0%{?pylint_check}
-BuildRequires:  spacewalk-python2-pylint
+BuildRequires:  spacewalk-python3-pylint
 %endif
 BuildRequires:  /usr/bin/docbook2man
 BuildRequires:  docbook-utils
-BuildRequires:  python2
+BuildRequires:  python3
 BuildRequires: /usr/bin/pod2man
 %if 0%{?fedora} || 0%{?rhel} >=7
-BuildRequires:  python2-dnf
+BuildRequires:  python3-dnf
 BuildRequires:  spacewalk-config
 BuildRequires:  spacewalk-backend >= 1.7.24
 BuildRequires:  spacewalk-backend-libs >= 1.7.24
@@ -52,7 +52,7 @@ Requires:       spacewalk-backend
 Requires:       spacewalk-backend-libs
 Requires:       spacewalk-backend-tools >= 2.2.27
 Requires:       spacewalk-reports
-Requires:       python2-dnf
+Requires:       python3-dnf
 
 %description
 Generic utilities that may be run against a Spacewalk server.
@@ -75,7 +75,7 @@ make install PREFIX=$RPM_BUILD_ROOT ROOT=%{rhnroot} \
 %check
 %if 0%{?pylint_check}
 # check coding style
-spacewalk-python2-pylint $RPM_BUILD_ROOT%{rhnroot}
+spacewalk-python3-pylint $RPM_BUILD_ROOT%{rhnroot}
 %endif
 
 %files
