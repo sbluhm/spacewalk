@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 # Utility for exporting Sat5-channel-data
 #
@@ -294,7 +294,7 @@ if __name__ == '__main__':
     parser = OptionParser(option_list=options_table)
     (options, args) = parser.parse_args()
     if not options.directory:
-        print "Export directory has to be specified. Try --help:\n"
+        print ("Export directory has to be specified. Try --help:\n")
         parser.print_help()
         sys.exit(1)
 

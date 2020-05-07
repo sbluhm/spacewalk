@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 """
 Multi-Org: Script to migrate server from one org to another
 
@@ -10,11 +10,15 @@ Author: Pradeep Kilambi <pkilambi@redhat.com>
 
 """
 
+import csv
 import os
 import sys
-import xmlrpclib
+try: # python2
+    import xmlrpclib
+except ImportError: # python3
+    import xmlrpc.client as xmlrpclib
 
-from optparse import OptionParser, Option
+from optparse import OptionParser, Option # pylint: disable=deprecated-module
 from spacewalk.common.cli import getUsernamePassword, xmlrpc_login, xmlrpc_logout
 
 _topdir = '/usr/share/rhn'
@@ -60,7 +64,7 @@ def main():
 
     satellite_url = "http://%s/rpc/api" % satellite_host
     if DEBUG:
-        print "Connecting to %s" % satellite_url
+        print ("Connecting to %s" % satellite_url)
 
     client = xmlrpclib.Server(satellite_url, verbose=0)
 
@@ -71,11 +75,11 @@ def main():
 
     if not options.csv:
         if not options.systemId:
-            print "Missing --systemId"
+            print ("Missing --systemId")
             return 1
 
         if not options.to_org_id:
-            print "Missing Destination org id"
+            print ("Missing Destination org id")
             return 1
         else:
             to_org_id = options.to_org_id or None
@@ -98,13 +102,13 @@ def main():
             server_id = [int(server_id)]
         try:
             migrate_system(sessionKey, int(to_org_id), server_id)
-        except Exception:
+        except Exception: # pylint: disable=bad-option-value,try-except-raise
             raise
 
     if DEBUG:
-        print "Migration Completed successfully"
+        print ("Migration Completed successfully")
     xmlrpc_logout(client, sessionKey)
-    return 0
+    return None
 
 
 def migrate_system(key, newOrgId, server_ids):
@@ -112,14 +116,12 @@ def migrate_system(key, newOrgId, server_ids):
     Call to migrate given system to new org
     """
     if DEBUG:
-        print "Migrating systemIds %s to Org %s" % (server_ids, newOrgId)
+        print ("Migrating systemIds %s to Org %s" % (server_ids, newOrgId))
     try:
         client.org.migrateSystems(key, newOrgId, server_ids)
-    except xmlrpclib.Fault, e:
+    except xmlrpclib.Fault as e:
         sys.stderr.write("Error: %s\n" % e.faultString)
         sys.exit(-1)
-
-    return
 
 
 def lookup_server(key, from_org_id):
@@ -129,14 +131,14 @@ def lookup_server(key, from_org_id):
     if not rows:
         sys.stderr.write("No Systems registered for Org-ID %s \n" % from_org_id)
         sys.exit(1)
-    print "                                    "
-    print "Available Systems for Org-ID: %s " % from_org_id
-    print "------------------------------------"
-    print " Server-ID      Server-Name         "
-    print "------------------------------------"
+    print ("                                    ")
+    print ("Available Systems for Org-ID: %s " % from_org_id)
+    print ("------------------------------------")
+    print (" Server-ID      Server-Name         ")
+    print ("------------------------------------")
     for row in rows:
-        print " %s   %s " % (row['id'], row['name'])
-    print "--------------------------------------------"
+        print (" %s   %s " % (row['id'], row['name']))
+    print ("--------------------------------------------")
 
     return rows
 
@@ -145,7 +147,6 @@ def read_csv_file(csv_file):
     """
      Parse the fields in the given csv
     """
-    import csv
     csv_data = []
     f_csv = open(csv_file)
     reader = csv.reader(f_csv)

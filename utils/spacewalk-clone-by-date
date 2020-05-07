@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 #
 # Clonse channels by a particular date
 #
@@ -298,7 +298,7 @@ def parse_args():
                                 + "five arguments")
 
     if options.sample:
-        print SAMPLE_CONFIG
+        print (SAMPLE_CONFIG)
         sys.exit(0)
 
     if options.config and options.channels:
@@ -419,7 +419,7 @@ def main():
         return cloneByDate.main(args)
     except KeyboardInterrupt:
         systemExit(0, "\nUser interrupted process.")
-    except UserError, error:
+    except UserError as error:
         systemExit(-1, "\n%s" % error)
     return 0
 

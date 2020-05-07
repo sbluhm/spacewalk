@@ -1,6 +1,19 @@
 %define rhnroot %{_prefix}/share/rhn
-%if (0%{?fedora} && 0%{?fedora} <30) || 0%{?rhel} == 7
+%if (0%{?fedora} && 0%{?fedora} <30) || 0%{?rhel} >= 7
 %{!?pylint_check: %global pylint_check 1}
+%endif
+
+
+%if 0%{?rhel} >= 8
+%global build_py3   1
+%endif
+
+%if 0%{?build_py3}
+%{!?__python3:%global __python3 /usr/bin/python3}
+%define python_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+%global python_prefix python3
+%else
+%global python_prefix python2
 %endif
 
 Name:		spacewalk-utils
@@ -14,19 +27,36 @@ Source0:	https://github.com/spacewalkproject/spacewalk/archive/%{name}-%{version
 BuildArch:      noarch
 
 %if 0%{?pylint_check}
-BuildRequires:  spacewalk-python2-pylint
+BuildRequires:  spacewalk-%{python_prefix}-pylint
 %endif
+BuildRequires:  %{python_prefix}
+BuildRequires:  %{python_prefix}-dnf
+Requires:       %{python_prefix}
+Requires:       %{python_prefix}-dnf
+%if 0%{?build_py3}
+Requires:       python3-rpm
+%else
+Requires:       rpm-python
+BuildRequires:  %{python_prefix}-future
+Requires:       %{python_prefix}-future
+%endif
+
 BuildRequires:  /usr/bin/docbook2man
 BuildRequires:  docbook-utils
-BuildRequires:  python2
 BuildRequires: /usr/bin/pod2man
 %if 0%{?fedora} || 0%{?rhel} >=7
-BuildRequires:  python2-dnf
 BuildRequires:  spacewalk-config
 BuildRequires:  spacewalk-backend >= 1.7.24
+%if 0%{?build_py3}
+BuildRequires:  %{python_prefix}-spacewalk-backend-libs >= 1.7.24
+Requires:  %{python_prefix}-spacewalk-backend-libs
+%else
 BuildRequires:  spacewalk-backend-libs >= 1.7.24
+Requires:  spacewalk-backend-libs
+%endif
 BuildRequires:  spacewalk-backend-tools >= 1.7.24
 %endif
+
 
 Requires:       bash
 Requires:       cobbler20
@@ -37,10 +67,6 @@ Requires:       net-tools
 Requires:       /usr/bin/spacewalk-sql
 Requires:       perl-Satcon
 Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
-Requires:       python2, rpm-python
-%if 0%{?rhel} == 6
-Requires:       python-argparse
-%endif
 Requires:       rhnlib >= 2.5.20
 Requires:       rpm
 Requires:       setup
@@ -49,10 +75,8 @@ Requires:       spacewalk-certs-tools
 Requires:       spacewalk-config
 Requires:       spacewalk-setup
 Requires:       spacewalk-backend
-Requires:       spacewalk-backend-libs
 Requires:       spacewalk-backend-tools >= 2.2.27
 Requires:       spacewalk-reports
-Requires:       python2-dnf
 
 %description
 Generic utilities that may be run against a Spacewalk server.
@@ -75,7 +99,9 @@ make install PREFIX=$RPM_BUILD_ROOT ROOT=%{rhnroot} \
 %check
 %if 0%{?pylint_check}
 # check coding style
-spacewalk-python2-pylint $RPM_BUILD_ROOT%{rhnroot}
+
+spacewalk-%{python_prefix}-pylint $RPM_BUILD_ROOT%{rhnroot}
+
 %endif
 
 %files
