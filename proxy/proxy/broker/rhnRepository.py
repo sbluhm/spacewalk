@@ -132,9 +132,9 @@ class Repository(rhnRepository.Repository):
         try:
             retval = server.proxy.package_source_in_channel(
                 pkgFilename, self.channelName, self.clientInfo)
-        except xmlrpclib.Fault, e:
-            raise rhnFault(1000,
-                           _("Error retrieving source package: %s") % str(e)), None, sys.exc_info()[2]
+        except xmlrpclib.Fault as e:
+            raise (rhnFault(1000,
+                           _("Error retrieving source package: %s") % str(e)), None, sys.exc_info()[2])
         if not retval:
             raise rhnFault(17, _("Invalid SRPM package requested: %s")
                            % pkgFilename)
@@ -224,10 +224,10 @@ class Repository(rhnRepository.Repository):
 
         try:
             packageList = self._listPackages()
-        except xmlrpclib.ProtocolError, e:
+        except xmlrpclib.ProtocolError as e:
             errcode, errmsg = rpclib.reportError(e.headers)
-            raise rhnFault(1000, "SpacewalkProxy error (xmlrpclib.ProtocolError): "
-                           "errode=%s; errmsg=%s" % (errcode, errmsg)), None, sys.exc_info()[2]
+            raise (rhnFault(1000, "SpacewalkProxy error (xmlrpclib.ProtocolError): "
+                           "errode=%s; errmsg=%s" % (errcode, errmsg)), None, sys.exc_info()[2])
 
         # Hash the list
         _hash = {}
@@ -462,8 +462,8 @@ def cache(stringObject, directory, filename, version):
         # Try to create this new file
         try:
             fd = os.open(tempfile, os.O_WRONLY | os.O_CREAT | os.O_EXCL,
-                         0644)
-        except OSError, e:
+                         0o644)
+        except OSError as e:
             if e.errno == 17:
                 # File exists; give it another try
                 tries = tries - 1

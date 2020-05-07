@@ -357,7 +357,7 @@ class apacheHandler(rhnApache):
 
         try:
             ret = handlerObj.handler()
-        except rhnFault, e:
+        except rhnFault as e:
             return self.response(req, e)
 
         if rhnFlags.test("NeedEncoding"):
@@ -530,7 +530,7 @@ class apacheHandler(rhnApache):
             response = self.normalize(response)
             try:
                 response = rpclib.xmlrpclib.dumps(response, methodresponse=1)
-            except TypeError, e:
+            except TypeError as e:
                 log_debug(-1, "Error \"%s\" encoding response = %s" % (e, response))
                 Traceback("apacheHandler.response", req,
                           extra="Error \"%s\" encoding response = %s" % (e, response),

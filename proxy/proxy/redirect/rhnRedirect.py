@@ -314,7 +314,7 @@ class RedirectHandler(SharedHandler):
         log_debug(4, "Attempting to connect to 3rd party server...")
         try:
             connection.connect()
-        except socket.error, e:
+        except socket.error as e:
             log_error("Error opening redirect connection", redirectLocation, e)
             Traceback(mail=0)
             return apache.HTTP_SERVICE_UNAVAILABLE
@@ -353,7 +353,7 @@ class RedirectHandler(SharedHandler):
             connection.endheaders()
 
             response = connection.getresponse()
-        except IOError, ioe:
+        except IOError as ioe:
             # Raised by getresponse() if server closes connection on us.
             log_error("Redirect connection reset by peer.",
                       redirectLocation,
@@ -364,7 +364,7 @@ class RedirectHandler(SharedHandler):
             # will be closed when the caller pops the context.
             return apache.HTTP_SERVICE_UNAVAILABLE
 
-        except socket.error, se:
+        except socket.error as se:
             # Some socket error occurred.  Possibly a read error.
             log_error("Redirect request failed.", redirectLocation, se)
             Traceback(mail=0)
