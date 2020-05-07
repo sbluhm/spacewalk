@@ -6,9 +6,9 @@ testuser = "admin"
 testpass = "redhat"
 
 token = remote.login(testuser,testpass)
-print token
+print (token)
 # rc = remote.test(token)
-# print "test result: %s" % rc
+# print ("test result: %s" % rc)
 
 # just to make things "work"
 os.system("touch /tmp/vmlinuz")
@@ -33,6 +33,6 @@ remote.save_profile(profile_id,token)
 #profile_handle = remote.get_profile_handle('example-distro2-modified', token)
 #remote.modify_profile(profile_handle, 'distro', 'test-cli', token)
 #remote.save_profile(profile_handle,token)
-#print "profile: " + str(profile_handle)
+#print ("profile: " + str(profile_handle))
 
 

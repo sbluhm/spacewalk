@@ -65,7 +65,7 @@ def cliOptions():
     opts, args = parser.parse_args(sys.argv)
 
     if len(args) != 2:
-        print "You must provide the URL to your RHN server."
+        print ("You must provide the URL to your RHN server.")
         parser.print_help()
         sys.exit(1)
 
@@ -93,19 +93,19 @@ def search(rhn, days):
 
 def delete(rhn, list, noconfirm=False):
     for server in list:
-        print "Removing %s..." % server["name"]
+        print ("Removing %s..." % server["name"])
         if noconfirm or userconfirm():
             ret = rhn.server.system.deleteSystems(rhn.session,
                                                   int(server["id"]))
             if ret != 1:
-                print "Removing %s failed with error code: %s" % \
-                        (server["name"], ret)
+                print ("Removing %s failed with error code: %s" % \
+                        (server["name"], ret))
         else:
-            print "Skipping %s" % server["name"]
+            print ("Skipping %s" % server["name"])
 
 def main():
 
-    print "Search and Destroy old RHN registrations."
+    print ("Search and Destroy old RHN registrations.")
     print
 
     o = cliOptions()
@@ -113,18 +113,18 @@ def main():
     rhn = RHNClient(o.server)
     rhn.connect()
 
-    print "RHN API Version: %s" % rhn.server.api.system_version()
-    print "Today's date = %s" % date.today().isoformat()
+    print ("RHN API Version: %s" % rhn.server.api.system_version())
+    print ("Today's date = %s" % date.today().isoformat())
     print
 
     list = search(rhn, o.days)
     for s in list:
-        print s["name"]
+        print (s["name"])
 
-    print "There are %s inactive systems." % len(list)
+    print ("There are %s inactive systems." % len(list))
 
     if o.delete:
-        print "Going to delete these registrations.  Hit ^C to abort now!"
+        print ("Going to delete these registrations.  Hit ^C to abort now!")
         time.sleep(5)
         delete(rhn, list, o.noconfirm)
 

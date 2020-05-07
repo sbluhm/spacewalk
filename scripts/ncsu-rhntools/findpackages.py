@@ -78,8 +78,8 @@ def match(string, unknown, epsilon = 0.0001):
             return False
         return (f - epsilon) <= unknown <= (f + epsilon)
 
-    print "Unknown package EVR value %s of type %s could not be matched to %s" \
-            % (unknown, type(unknown), string)
+    print ("Unknown package EVR value %s of type %s could not be matched to %s" \
+            % (unknown, type(unknown), string))
     return False
 
 def bruteForceFind(p):
@@ -93,9 +93,9 @@ def bruteForceFind(p):
 
         for evr in [os.path.basename(i) for i in os.listdir(namedir)]:
             e, v, r = stringToVersion(evr)
-            #print "Directory: %s + %s" % (namedir, evr)
-            #print "EVR: (%s, %s, %s)" % (e, v, r)
-            #print "%s, %s, %s" % (type(e), type(v), type(r))
+            #print ("Directory: %s + %s" % (namedir, evr))
+            #print ("EVR: (%s, %s, %s)" % (e, v, r))
+            #print ("%s, %s, %s" % (type(e), type(v), type(r)))
 
             # Epoch
             if evr.find(':') == -1:
@@ -121,8 +121,8 @@ def bruteForceFind(p):
 
             # Okay, there should be ONE rpm file here
             if not os.access(bindir, os.R_OK):
-                print "Directory not found: %s" % bindir
-                print "Found packages but arch directory missing?"
+                print ("Directory not found: %s" % bindir)
+                print ("Found packages but arch directory missing?")
                 continue
             for file in os.listdir(bindir):
                 if file.endswith("%(package_arch_label)s.rpm" % p):
@@ -138,7 +138,7 @@ def bruteForceFind(p):
 
             return binpath, srcpath
 
-    print "Error:  Could not find packages: %s" % str(p)
+    print ("Error:  Could not find packages: %s" % str(p))
     return None, None
 
 def buildTreeUsing(label, rpm, srpm):
@@ -148,7 +148,7 @@ def buildTreeUsing(label, rpm, srpm):
     location = os.path.join(TreeLocation, label, 'RPMS', os.path.basename(rpm))
     dir, file = os.path.split(location)
     if not os.path.exists(dir):
-        os.makedirs(dir, 0755)
+        os.makedirs(dir, 0o755)
     if not os.path.exists(location):
         os.symlink(rpm, location)
 
@@ -158,7 +158,7 @@ def buildTreeUsing(label, rpm, srpm):
                             os.path.basename(srpm))
     dir, file = os.path.split(location)
     if not os.path.exists(dir):
-        os.makedirs(dir, 0755)
+        os.makedirs(dir, 0o755)
     if not os.path.exists(location):
         os.symlink(srpm, location)
 
@@ -173,7 +173,7 @@ def test():
     p = {'package_arch_label': 'noarch', 'package_name': 'dejagnu', 'package_epoch': '1', 'package_version': '1.4.4', 'package_release': '2', 'package_id': 3066, 'package_last_modified': '2006-08-22 22:00:25'}
     q = {'package_arch_label': 'x86_64', 'package_name': 'sendmail-doc', 'package_epoch': '100', 'package_version': '8.12.11', 'package_release': '3.3.ncsu', 'package_id': 8555, 'package_last_modified': '2007-04-04 15:42:15'}
 
-    print bruteForceFind(q)
+    print (bruteForceFind(q))
 
 def main():
     rhncfg = config.RHNConfig()
@@ -193,8 +193,8 @@ def main():
             location, source = bruteForceFind(p)
 
             if location == None:
-                print "Error: Could not find binary package:"
-                print p
+                print ("Error: Could not find binary package:")
+                print (p)
             else:
                 buildTreeUsing(chan['channel_label'], location, source)
 

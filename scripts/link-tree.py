@@ -30,7 +30,7 @@ def link_tree(src_dir, dest_dir):
     src_dir = abspath(src_dir)
     dest_dir = abspath(dest_dir)
     if need_to_backup(src_dir, dest_dir):
-        print "Moving %s to %s" %(dest_dir, dest_dir + ".bak")
+        print ("Moving %s to %s" %(dest_dir, dest_dir + ".bak"))
         shutil.move(dest_dir, dest_dir + ".bak")
     if not exists(dest_dir):
         os.makedirs(dest_dir)
@@ -50,6 +50,6 @@ def link_tree(src_dir, dest_dir):
 if __name__ == "__main__":
     args = sys.argv[1:]
     if len(args) != 2:
-        print "%s <src_dir> <dest_dir>" % sys.argv[0]
+        print ("%s <src_dir> <dest_dir>" % sys.argv[0])
         sys.exit(1)
     link_tree(*args)

@@ -35,40 +35,40 @@ import getpass
 hosts = pickle.loads(open("hosts.pic").read())
 
 server = xmlrpclib.ServerProxy("https://rhn.linux.ncsu.edu/rpc/api")
-print "RHN API Version: %s" % server.api.system_version()
+print ("RHN API Version: %s" % server.api.system_version())
 
 sys.stdout.write("RHN Username: ")
 userid = sys.stdin.readline().strip()
 pw = getpass.getpass("RHN Password: ")
 
 session = server.auth.login(userid, pw, 3600)
-print "Session ID = %s" % session
+print ("Session ID = %s" % session)
 
 list = server.system.listUserSystems(session)
-print "We have %s systems in RHN" % len(list)
-print "We have %s systems to Realm-ize" % len(hosts)
+print ("We have %s systems in RHN" % len(list))
+print ("We have %s systems to Realm-ize" % len(hosts))
 
 systems = {}
 for i in list:
     systems[i['name']] = int(i['id'])
 
-#print server.system.list_child_channels(session, systems['anduril.pams.ncsu.edu'])
+#print (server.system.list_child_channels(session, systems['anduril.pams.ncsu.edu']))
 
 for host in hosts:
-    print "\nProcessing %s..." % host
+    print ("\nProcessing %s..." % host)
 
     if systems.has_key(host):
         sid = systems[host]
         chans = server.system.listChildChannels(session, sid)
     elif systems.has_key(host.split('.')[0]):
         sid = systems[host.split('.')[0]]
-        print "Trying alternate name: %s" % host.split('.')[0]
+        print ("Trying alternate name: %s" % host.split('.')[0])
         chans = server.system.listChildChannels(session, sid)
     else:
-        print "WARNING: %s not found in RHN" % host
+        print ("WARNING: %s not found in RHN" % host)
         continue
 
-    print "Found Host: %s" % host
+    print ("Found Host: %s" % host)
 
     chan = ""
     cid = ""
@@ -85,10 +85,10 @@ for host in hosts:
             cid = c['ID']
 
     if chan == "":
-        print "Realm Linux channel already set for: %s" % host
+        print ("Realm Linux channel already set for: %s" % host)
         continue
 
-    print "Setting sub-channels of %s to %s, %s" % (host, chan, cid)
+    print ("Setting sub-channels of %s to %s, %s" % (host, chan, cid))
     ret = server.system.setChildChannels(session, sid, [cid])
-    print "RHN Returned %s" % ret
+    print ("RHN Returned %s" % ret)
 

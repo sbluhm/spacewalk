@@ -185,17 +185,17 @@ class RHNServer:
     def rhnLogin(self, login, password, retry):
         try:
             rhnSession=self.server.auth.login(login,password)
-        except  xmlrpclib.Fault, f:
+        except  xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(login,password,retry)
             else:
-                print "Failed to login",f
+                print ("Failed to login",f)
                 raise
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -206,21 +206,21 @@ class RHNServer:
         channels = []
         try:
             details = self.server.errata.applicableToChannels(self.rhnSession,advisory)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.errata.applicableToChannels(self.rhnSession,advisory)
             elif f.faultCode == -208:
                 if options.verbose:
-                    print "Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName)
+                    print ("Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName))
                 return []
             else:
                 raise
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -231,21 +231,21 @@ class RHNServer:
         details = []
         try:
             details = self.server.errata.getDetails(self.rhnSession,advisory)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.errata.getDetails(self.rhnSession,advisory)
             elif f.faultCode == -208:
                 if options.verbose:
-                    print "Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName)
+                    print ("Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName))
                 return []
             else:
                 raise
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -256,21 +256,21 @@ class RHNServer:
         keywords = []
         try:
             keywords = self.server.errata.listKeywords(self.rhnSession,advisory)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.errata.listKeywords(self.rhnSession,advisory)
             elif f.faultCode == -208:
                 if options.verbose:
-                    print "Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName)
+                    print ("Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName))
                 return []
             else:
-                print "Error Getting Keywords : "+advisory
-        except xmlrpclib.ProtocolError, err:
+                print ("Error Getting Keywords : "+advisory)
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -281,21 +281,21 @@ class RHNServer:
         keywords = []
         try:
             keywords = self.server.errata.listCves(self.rhnSession,advisory)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.errata.listCves(self.rhnSession,advisory)
             elif f.faultCode == -208:
                 if options.verbose:
-                    print "Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName)
+                    print ("Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName))
                 return []
             else:
-                print "Error Getting CVEs : "+advisory
-        except xmlrpclib.ProtocolError, err:
+                print ("Error Getting CVEs : "+advisory)
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -306,21 +306,21 @@ class RHNServer:
         bugs = []
         try:
             bugs = self.server.errata.bugzillaFixes(self.rhnSession,advisory)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.errata.bugzillaFixes(self.rhnSession,advisory)
             elif f.faultCode == -208:
                 if options.verbose:
-                    print "Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName)
+                    print ("Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName))
                 return []
             else:
-                print "Error Getting Bugs : "+advisory
-        except xmlrpclib.ProtocolError, err:
+                print ("Error Getting Bugs : "+advisory)
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -331,21 +331,21 @@ class RHNServer:
         cves=[]
         try:
             cves = self.server.errata.listCves(self.rhnSession,advisory)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.errata.listCves(self.rhnSession,advisory)
             elif f.faultCode == -208:
                 if options.verbose:
-                    print "Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName)
+                    print ("Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName))
                 return []
             else:
-                print "Error Getting CVEs : %s" % advisory
-        except xmlrpclib.ProtocolError, err:
+                print ("Error Getting CVEs : %s" % advisory)
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -356,21 +356,21 @@ class RHNServer:
         packages=[]
         try:
             packages = self.server.errata.listPackages(self.rhnSession,advisory)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.errata.listPackages(self.rhnSession,advisory)
             elif f.faultCode == -208:
                 if options.verbose:
-                    print "Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName)
+                    print ("Errata %s Doesn't Exist on %s ..." % (advisory,self.rhnServerName))
                 return []
             else:
-                print "Error Getting Packages : %s" % advisory
-        except xmlrpclib.ProtocolError, err:
+                print ("Error Getting Packages : %s" % advisory)
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -381,17 +381,17 @@ class RHNServer:
         out = []
         try:
             out = self.server.channel.software.listErrata(self.rhnSession,dest_chan,dateStart,dateEnd)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.channel.software.listErrata(self.rhnSession,dest_chan,dateStart,dateEnd)
             else:
                 raise
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -402,17 +402,17 @@ class RHNServer:
         channels=[]
         try:
             channels = self.server.packages.listProvidingChannels(self.rhnSession,pkgid)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.packages.listProvidingChannels(self.rhnSession,pkgid)
             else:
-                print "Error Finding Channels for Package : %s" % pkgid
-        except xmlrpclib.ProtocolError, err:
+                print ("Error Finding Channels for Package : %s" % pkgid)
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -422,17 +422,17 @@ class RHNServer:
     def cloneErrata(self,dest_chan,errata,retry):
         out=[]
         try:
-            print "Clone errata in progress, please be patient.."
+            print ("Clone errata in progress, please be patient..")
             out = self.server.errata.clone(self.rhnSession,dest_chan,errata)
-        except  xmlrpclib.Fault, f:
-            print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+        except  xmlrpclib.Fault as f:
+            print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.self.server.errata.clone(self.rhnSession,dest_chan,errata)
             else:
                 raise
-        except xmlrpclib.ProtocolError, err:
-            print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+        except xmlrpclib.ProtocolError as err:
+            print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -445,17 +445,17 @@ class SPWServer(RHNServer):
         package=[]
         try:
             package = self.server.packages.findByNvrea(self.rhnSession,name,version,release,epoch,archlabel)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.packages.findByNvrea(self.rhnSession,name,version,release,archlabel)
             else:
-                print "Error Finding Package via NVREA : %s" % name
-        except xmlrpclib.ProtocolError, err:
+                print ("Error Finding Package via NVREA : %s" % name)
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -466,17 +466,17 @@ class SPWServer(RHNServer):
         out = []
         try:
             out = self.server.channel.software.listErrata(self.rhnSession,dest_chan)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d\tFault String: %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.channel.software.listErrata(self.rhnSession,dest_chan)
             else:
                 raise
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -487,21 +487,21 @@ class SPWServer(RHNServer):
         errata=[]
         try:
             errata = self.server.errata.publish(self.rhnSession,name,channels)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d - %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d - %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.errata.publish(self.rhnSession,name,channels)
             elif f.faultCode == 2601:
-                print "Errata Already Exists..."
+                print ("Errata Already Exists...")
                 return []
             else:
-                print "Error Publishing Errata!"
+                print ("Error Publishing Errata!")
                 raise
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -512,21 +512,21 @@ class SPWServer(RHNServer):
         new_errata=[]
         try:
             new_errata = self.server.errata.create(self.rhnSession,info,bugs,keywords,packages,publish,channels)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d - %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d - %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.errata.create(self.rhnSession,info,bugs,keywords,packages,publish,channels)
             elif f.faultCode == 2601:
-                print "Errata Already Exists..."
+                print ("Errata Already Exists...")
                 return []
             else:
-                print "Error Creating Errata!"
+                print ("Error Creating Errata!")
                 raise
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -537,18 +537,18 @@ class SPWServer(RHNServer):
         out=[]
         try:
             out = self.server.errata.setDetails(self.rhnSession,advisory,details)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d - %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d - %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.errata.setDetails(self.rhnSession,advisory,details)
             else:
-                print "Can't Update Errata Details!"
+                print ("Can't Update Errata Details!")
                 raise
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -559,18 +559,18 @@ class SPWServer(RHNServer):
         out=[]
         try:
             out = self.server.packages.getDetails(self.rhnSession,id)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault as f:
             if options.verbose:
-                print "Fault Code: %d - %s" % (f.faultCode,f.faultString)
+                print ("Fault Code: %d - %s" % (f.faultCode,f.faultString))
             if f.faultCode == -20 or f.faultCode == -1:
                 self.rhnLogin(self.login,self.password,0)
                 return self.server.packages.getDetails(self.rhnSession,id)
             else:
-                print "Can't Get Package Details!"
+                print ("Can't Get Package Details!")
                 raise
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             if options.verbose:
-                print "ProtocolError: %d - %s" % (err.errcode,err.errmsg)
+                print ("ProtocolError: %d - %s" % (err.errcode,err.errmsg))
             if retry > 3:
                 raise
             else:
@@ -667,7 +667,7 @@ def main():
                 chanMap[chan] = config.get('ChanMap', chan)
         else:
             if options.src_channel is None:
-                print "Source channel not given, aborting"
+                print ("Source channel not given, aborting")
                 sys.exit(2)
             chanMap[options.src_channel] = config.get('ChanMap', options.src_channel)
 
@@ -692,7 +692,7 @@ def main():
 
     if (options.spw_server and options.spw_user and options.spw_pass and
         options.rhn_server and options.rhn_user and options.rhn_pass) is None:
-        print "try: "+sys.argv[0]+" --help"
+        print ("try: "+sys.argv[0]+" --help")
         sys.exit(2)
 
     rhnProxy = 0
@@ -713,7 +713,7 @@ def main():
 
     for chan in chanMap:
         if chanMap[chan] is None:
-            print "Invalid Channel!"
+            print ("Invalid Channel!")
             sys.exit(2)
 
         if options.format:
@@ -722,7 +722,7 @@ def main():
 
         for rhnErrata in myRHN.listChannelErrata(chan,dateStart,dateEnd,0):
             if not options.quiet and not options.format:
-                print rhnErrata['errata_advisory']
+                print (rhnErrata['errata_advisory'])
 
 #               Now, let's check if we already have this errata locally...
             spwErrataName = rhnErrata['errata_advisory']+':'+chanSuffixMap[chan]
@@ -770,7 +770,7 @@ def main():
                             print >>sys.stderr, "%s:%s:Hmmm... "+\
                                 "Package Missing: %s" % (dateToday, rhnErrata['errata_advisory'], pkg['package_name'])
                         else:
-                            print "Hmmm... Package Missing: %s" % pkg['package_name']
+                            print ("Hmmm... Package Missing: %s" % pkg['package_name'])
 
                 if missingcheck:
                     if options.ignoremissing:
@@ -779,14 +779,14 @@ def main():
                         if options.format:
                             print >>sys.stderr, "%s" % skiptext
                         else:
-                            print "%s" % skiptext
+                            print ("%s" % skiptext)
                     else:
                         skiptext = "Skipping errata due to missing package(s)..."
 
                         if options.format:
                             print >>sys.stderr, "%s" % skiptext
                         else:
-                            print "%s" % skiptext
+                            print ("%s" % skiptext)
 
                         continue
 
@@ -802,7 +802,7 @@ def main():
                     spwErrBugs.append({'id': int(bug), 'summary': tmpBugs[bug], 'url' : href})
 
                 if not options.quiet and not options.format:
-                    print "\t%s - %s" % (spwErrDetails['errata_issue_date'],spwErrDetails['errata_synopsis'])
+                    print ("\t%s - %s" % (spwErrDetails['errata_issue_date'],spwErrDetails['errata_synopsis']))
 
                 spwErrObject = mySPW.errataCreate ({ 'synopsis': spwErrDetails['errata_synopsis'],\
                                                      'advisory_name': spwErrataName,\
@@ -822,34 +822,34 @@ def main():
                                                      0)
 
                 if options.format:
-                    print "%s#%s#Errata Created#" % (dateToday, spwErrataName),
+                    print ("%s#%s#Errata Created#" % (dateToday, spwErrataName),)
                 else:
-                    print "\tErrata Created: %d" % spwErrObject['id']
+                    print ("\tErrata Created: %d" % spwErrObject['id'])
 
                 try:
                     if spwErrDetails['errata_issue_date']:
                         mySPW.setDetails(spwErrataName, { 'issue_date' : spwErrDetails['errata_issue_date'] }, 0)
-                except Exception, e:
+                except Exception as e:
                     if options.format:
                         print >>sys.stderr, "failed to set issue_date: %s" % e
                     else:
-                        print "failed to set issue_date: %s" % e
+                        print ("failed to set issue_date: %s" % e)
 
                 try:
                     if spwErrDetails['errata_update_date']:
                         mySPW.setDetails(spwErrataName, { 'update_date' : spwErrDetails['errata_update_date'] }, 0)
-                except Exception, e:
+                except Exception as e:
                     if options.format:
                         print >>sys.stderr, "failed to set update_date: %s" % e
                     else:
-                        print "failed to set update_date: %s" % e
+                        print ("failed to set update_date: %s" % e)
 
                 if options.publish:
                     spwPublish = mySPW.errataPublish (spwErrataName, [chanMap[chan]], 0)
                     if options.format:
-                        print "Errata Published"
+                        print ("Errata Published")
                     else:
-                        print "\tErrata Published!"
+                        print ("\tErrata Published!")
 
                     # we must add the CVEs after publishing because the foreign key
                     # constraint on 'rhnErrataCve' is for the 'rhnErrata' table, not
@@ -858,14 +858,14 @@ def main():
                         mySPW.setDetails(spwErrataName, { 'cves' : spwErrCVEs }, 0)
                 else:
                     if options.format:
-                        print "Errata Not Published"
+                        print ("Errata Not Published")
                     else:
-                        print "\tErrata Not Published!"
+                        print ("\tErrata Not Published!")
             else:
                 if options.format:
-                    print "%s#%s#Errata Already Exists" % (dateToday, spwErrataName)
+                    print ("%s#%s#Errata Already Exists" % (dateToday, spwErrataName))
                 elif not options.quiet:
-                    print "\tErrata Already Exists.  %s" % spwErrataName
+                    print ("\tErrata Already Exists.  %s" % spwErrataName)
                     continue
 
 if __name__ == "__main__":

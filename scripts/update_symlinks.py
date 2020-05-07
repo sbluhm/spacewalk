@@ -49,8 +49,8 @@ def setup_db():
 
 def main():
     setup_db()
-    print "================="
-    print "Updating Symbolic Links"
+    print ("=================")
+    print ("Updating Symbolic Links")
     q = """select cr.id as rev_id,
                     ccon.id as content_id,
                     ccon.contents,
@@ -75,8 +75,8 @@ def main():
     h.execute()
     results = h.fetchall_dict()
     if not results:
-        print "Update completed."
-        print "================="
+        print ("Update completed.")
+        print ("=================")
         return
     contents = []
     for row in results:
@@ -120,13 +120,13 @@ def main():
             rhnSQL.prepare(update_query).execute(**item)
         rhnSQL.prepare(update_cr).execute(**item)
         rhnSQL.prepare(delete_content).execute(**item)
-        print format % item
+        print (format % item)
 
     rhnSQL.commit()
     rhnSQL.closeDB()
-    print "%d rows updated." % len(contents)
-    print "Update completed"
-    print "================="
+    print ("%d rows updated." % len(contents))
+    print ("Update completed")
+    print ("=================")
     msg = """
     The following symbolic link paths are either null or not absolute or above 1024 characters in length.
     While entries have been added in the DB, the values have to be updated for them in the Web UI.
@@ -135,9 +135,9 @@ def main():
     """
 
     if bad_items:
-        print msg
+        print (msg)
         for item in bad_items:
-            print format % item
+            print (format % item)
 
 if __name__ == '__main__':
     sys.exit(main() or 0)
