@@ -24,11 +24,11 @@
 %global _buildshell /bin/bash
 %endif
 
-%if 0%{?fedora} >= 23 || 0%{?rhel} >= 8
+%if 0%{?fedora} >= 23 || 0%{?rhel} >= 7
 %global python3rhnroot %{python3_sitelib}/spacewalk
 %endif
 
-%if 0%{?fedora} || 0%{?rhel} >= 8
+%if 0%{?fedora} || 0%{?rhel} >= 7
 %global build_py3   1
 %global default_py3 1
 %endif
