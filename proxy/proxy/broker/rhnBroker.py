@@ -18,7 +18,13 @@
 import time
 import socket
 import re
-from urlparse import urlparse, urlunparse
+try:
+    #  python 2
+    from urlparse import urlparse, urlunparse
+except ImportError:
+    #  python3
+    from urllib.parse import urlparse
+    from urllib.parse import urlunparse
 
 # common module imports
 from rhn.UserDictCase import UserDictCase
@@ -303,7 +309,7 @@ class BrokerHandler(SharedHandler):
                              "Please contact your system administrator."))
 
         # Support for yum byte-range
-        if (status != apache.OK) and (status != apache.HTTP_PARTIAL_CONTENT):
+        if status not in (apache.OK, apache.HTTP_PARTIAL_CONTENT):
             log_debug(1, "Leaving handler with status code %s" % status)
             return status
 

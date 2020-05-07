@@ -1,5 +1,19 @@
-%if (0%{?fedora} && 0%{?fedora} <30) || 0%{?rhel} == 7
+%if (0%{?fedora} && 0%{?fedora} <30) || 0%{?rhel} >= 7
 %{!?pylint_check: %global pylint_check 1}
+%endif
+
+%if 0%{?rhel} >= 8
+%global build_py3  1
+%else
+%global build_py2   1
+%endif
+
+%if 0%{?build_py3}
+%{!?__python3:%global __python3 /usr/bin/python3}
+%define python_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+%global python_prefix python3
+%else
+%global python_prefix python2
 %endif
 
 Name: spacewalk-proxy
@@ -9,16 +23,19 @@ Release: 1%{?dist}
 License: GPLv2
 URL:     https://github.com/spacewalkproject/spacewalk
 Source0: https://github.com/spacewalkproject/spacewalk/archive/%{name}-%{version}.tar.gz
-BuildRequires: python2
 BuildArch: noarch
 Requires: httpd
 %if 0%{?pylint_check}
-BuildRequires: spacewalk-python2-pylint
+BuildRequires: spacewalk-%{python_prefix}-pylint
 %endif
 BuildRequires: rhnpush >= 5.5.74
-# proxy isn't Python 3 yet
-BuildRequires: python2-rhnpush
+BuildRequires: %{python_prefix} 
+BuildRequires: %{python_prefix}-rhnpush
+%if 0%{?build_py3}
+BuildRequires: python3-spacewalk-backend-libs
+%else
 BuildRequires: spacewalk-backend-libs >= 1.7.24
+%endif
 BuildRequires: spacewalk-backend >= 1.7.24
 
 %define rhnroot %{_usr}/share/rhn
@@ -143,12 +160,10 @@ Spacewalk Proxy components.
 Summary: Custom Channel Package Manager for the Spacewalk Proxy Server
 Requires: spacewalk-backend >= 1.7.24
 Requires: rhnlib >= 2.5.56
-Requires: python2
+Requires: %{python_prefix} 
+Requires: %{python_prefix}-rhnpush
 Requires: rhnpush >= 5.5.74
-# proxy isn't Python 3 yet
-Requires: python2-rhnpush
 BuildRequires: /usr/bin/docbook2man
-BuildRequires: python2-devel
 Obsoletes: rhn_package_manager < 5.3.0
 Obsoletes: rhns-proxy-package-manager < 5.3.0
 
@@ -191,7 +206,7 @@ sed -i 's/#LOGROTATE-3.8#//' $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/rhn-proxy
 %if 0%{?pylint_check}
 # check coding style
 export PYTHONPATH=$RPM_BUILD_ROOT/usr/share/rhn:$RPM_BUILD_ROOT%{python_sitelib}:/usr/share/rhn
-spacewalk-python2-pylint $RPM_BUILD_ROOT/usr/share/rhn
+spacewalk-%{python_prefix}-pylint $RPM_BUILD_ROOT/usr/share/rhn
 %endif
 
 %post broker
@@ -216,9 +231,9 @@ if [ -f $RHN_CONFIG_PY ] ; then
     # Check whether the config command supports the ability to retrieve a
     # config variable arbitrarily.  Versions of  < 4.0.6 (rhn) did not.
 
-    python2 $RHN_CONFIG_PY proxy.broker > /dev/null 2>&1
+    %{python_prefix} $RHN_CONFIG_PY proxy.broker > /dev/null 2>&1
     if [ $? -eq 1 ] ; then
-        RHN_PKG_DIR=$(python2 $RHN_CONFIG_PY get proxy.broker pkg_dir)
+        RHN_PKG_DIR=$(%{python_prefix} $RHN_CONFIG_PY get proxy.broker pkg_dir)
     fi
 fi
 

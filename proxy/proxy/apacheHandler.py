@@ -19,7 +19,11 @@
 # language imports
 import os
 import base64
-import xmlrpclib
+
+try: # python2
+    import xmlrpclib
+except ImportError: # python3
+    import xmlrpc.client as xmlrpclib
 import re
 
 # common imports
@@ -40,6 +44,8 @@ from rhnConstants import HEADER_ACTUAL_URI, HEADER_EFFECTIVE_URI, \
 
 # local imports
 from proxy.rhnProxyAuth import get_proxy_auth
+from broker import rhnBroker
+from redirect import rhnRedirect
 
 
 def getComponentType(req):
@@ -308,7 +314,7 @@ class apacheHandler(rhnApache):
         uriParts = oldURI.split('/')
         numParts = 0
         for part in uriParts:
-            if len(part) is not 0:  # Account for double slashes ("//")
+            if len(part) != 0:  # Account for double slashes ("//")
                 numParts += 1
                 if numParts > 2:
                     newURI += "/" + part
@@ -348,16 +354,14 @@ class apacheHandler(rhnApache):
         log_debug(4, "Component", self._component)
 
         if self._component == COMPONENT_BROKER:
-            from broker import rhnBroker
             handlerObj = rhnBroker.BrokerHandler(req)
         else:
             # Redirect
-            from redirect import rhnRedirect
             handlerObj = rhnRedirect.RedirectHandler(req)
 
         try:
             ret = handlerObj.handler()
-        except rhnFault, e:
+        except rhnFault as e:
             return self.response(req, e)
 
         if rhnFlags.test("NeedEncoding"):
@@ -530,7 +534,7 @@ class apacheHandler(rhnApache):
             response = self.normalize(response)
             try:
                 response = rpclib.xmlrpclib.dumps(response, methodresponse=1)
-            except TypeError, e:
+            except TypeError as e:
                 log_debug(-1, "Error \"%s\" encoding response = %s" % (e, response))
                 Traceback("apacheHandler.response", req,
                           extra="Error \"%s\" encoding response = %s" % (e, response),
@@ -577,7 +581,7 @@ class apacheHandler(rhnApache):
     @staticmethod
     def _response_fault_get(req, response):
         req.headers_out["X-RHN-Fault-Code"] = str(response.faultCode)
-        faultString = base64.encodestring(response.faultString).strip()
+        faultString = base64.encodestring(response.faultString).strip() # pylint: disable=deprecated-method
         # Split the faultString into multiple lines
         for line in faultString.split('\n'):
             req.headers_out.add("X-RHN-Fault-String", line.strip())

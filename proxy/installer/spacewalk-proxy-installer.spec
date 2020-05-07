@@ -1,4 +1,4 @@
-%if (0%{?fedora} && 0%{?fedora} <30) || 0%{?rhel} == 7
+%if (0%{?fedora} && 0%{?fedora} <30) || 0%{?rhel} >= 7
 %{!?pylint_check: %global pylint_check 1}
 %endif
 
@@ -32,8 +32,13 @@ Requires: chkconfig
 Requires: libxslt
 Requires: spacewalk-certs-tools >= 1.6.4
 %if 0%{?pylint_check}
+%if 0%{?rhel} >= 8
+BuildRequires: spacewalk-python3-pylint
+BuildRequires: python3-rhn-client-tools
+%else
 BuildRequires: spacewalk-python2-pylint
 BuildRequires: python2-rhn-client-tools
+%endif
 %endif
 BuildRequires: /usr/bin/docbook2man
 
@@ -91,7 +96,11 @@ install -m 755 rhn-proxy-activate.py $RPM_BUILD_ROOT%{_bindir}/rhn-proxy-activat
 %check
 %if 0%{?pylint_check}
 # check coding style
+%if 0%{?rhel} >= 8
+spacewalk-python3-pylint .
+%else
 spacewalk-python2-pylint .
+%endif
 %endif
 
 %files

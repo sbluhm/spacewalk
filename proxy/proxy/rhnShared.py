@@ -15,10 +15,8 @@
 #
 
 # language imports
-import urllib
 import socket
 import sys
-from types import ListType, TupleType
 
 # global imports
 from rhn import connections
@@ -34,10 +32,11 @@ from spacewalk.common.rhnLog import log_debug, log_error
 from spacewalk.common import rhnFlags, rhnLib, apache
 from spacewalk.common.rhnTranslate import _
 
+from six import reraise as raise_
+
 # local imports
 import rhnConstants
 from responseContext import ResponseContext
-
 
 class SharedHandler:
 
@@ -128,12 +127,12 @@ class SharedHandler:
 
         try:
             self.responseContext.getConnection().connect()
-        except socket.error, e:
+        except socket.error as e:
             log_error("Error opening connection", self.rhnParent, e)
             Traceback(mail=0)
-            raise rhnFault(1000,
-                           _("Spacewalk Proxy could not successfully connect its RHN parent. "
-                             "Please contact your system administrator.")), None, sys.exc_info()[2]
+            raise_(rhnFault(1000,
+                            _("Spacewalk Proxy could not successfully connect its RHN parent. "
+                              "Please contact your system administrator.")),sys.exc_info()[2])
 
         # At this point the server should be okay
         log_debug(3, "Connected to parent: %s " % self.rhnParent)
@@ -185,9 +184,15 @@ class SharedHandler:
     def _parse_url(url):
         """ Returns scheme, host, port, path. """
         scheme, netloc, path, _params, _query, _frag = rhnLib.parseUrl(url)
-        host, port = urllib.splitnport(netloc)
-        if (port <= 0):
-            port = None
+        host, delim, tport = netloc.rpartition(':')
+        port = None
+        if not delim:
+            host = tport
+        elif tport:
+            try:
+                port = int(tport)
+            except ValueError:
+                port = None
         return scheme, host, port, path
 
     def _serverCommo(self):
@@ -215,13 +220,13 @@ class SharedHandler:
             # Server closed connection on us, no need to mail out
             # XXX: why are we not mailing this out???
             Traceback("SharedHandler._serverCommo", self.req, mail=0)
-            raise rhnFault(1000, _(
-                "Spacewalk Proxy error: connection with the Spacewalk server failed")), None, sys.exc_info()[2]
-        except socket.error:
+            raise_(rhnFault(1000, _(
+                "Spacewalk Proxy error: connection with the Spacewalk server failed")),sys.exc_info()[2])
+        except socket.error: # pylint: disable=duplicate-except
             # maybe self.req.read() failed?
             Traceback("SharedHandler._serverCommo", self.req)
-            raise rhnFault(1000, _(
-                "Spacewalk Proxy error: connection with the Spacewalk server failed")), None, sys.exc_info()[2]
+            raise_(rhnFault(1000, _(
+                "Spacewalk Proxy error: connection with the Spacewalk server failed")),sys.exc_info()[2])
 
         log_debug(2, "HTTP status code (200 means all is well): %s" % status)
 
@@ -237,7 +242,7 @@ class SharedHandler:
             and send them back to the client with an error status.  This method
             should return apache.OK if everything went according to plan.
         """
-        if (status != apache.HTTP_OK) and (status != apache.HTTP_PARTIAL_CONTENT):
+        if status not in (apache.HTTP_OK, apache.HTTP_PARTIAL_CONTENT):
             # Non 200 response; have to treat it differently
             log_debug(2, "Forwarding status %s" % status)
             # Copy the incoming headers to headers_out
@@ -362,7 +367,7 @@ class SharedHandler:
                         'warning', 'www-authenticate']):
                 # filter out header we don't want to send
                 continue
-            if not isinstance(vals, (ListType, TupleType)):
+            if not isinstance(vals, (list, tuple)):
                 vals = [vals]
             for v in vals:
                 log_debug(5, "Outgoing header", k, v)
