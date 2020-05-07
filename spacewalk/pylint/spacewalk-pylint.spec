@@ -14,8 +14,12 @@ Requires:	pylint > 1.1
 %if 0%{?fedora} || 0%{?rhel} >= 7
 %if 0%{?fedora} >= 26
 Requires:	python2-pylint > 1.5
-%else
-Requires:	pylint > 1.5
+%endif
+%if 0%{?rhel} = 7
+Requires:	python36-pylint
+%endif
+%if 0%{?rhel} >= 8
+Requires:       python3-pylint
 %endif
 %else
 Requires:	pylint < 1.0

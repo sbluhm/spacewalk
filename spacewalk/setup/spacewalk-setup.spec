@@ -27,7 +27,7 @@ Requires:       dnf-command(versionlock)
 Requires:       perl
 %endif
 Requires:       perl-Params-Validate
-Requires:       perl(Term::Completion::Path)
+Requires:       perl-Term-Completion
 Requires:       spacewalk-schema
 Requires:       %{sbinpath}/restorecon
 Requires:       spacewalk-admin
@@ -36,7 +36,7 @@ Requires:       perl-Satcon
 Requires:       spacewalk-backend-tools
 Requires:       cobbler20
 %if 0%{?rhel} >= 8
-Requires:       python2-pyyaml
+Requires:       python3-pyyaml
 %else
 Requires:       PyYAML
 %endif
