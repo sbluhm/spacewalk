@@ -548,7 +548,7 @@ class UpdateMetadata(object):
                 unfile = repo_gen_decompress(md, 'updateinfo.xml')
                 infile = open(unfile, 'rt')
         elif isinstance(obj, FakeRepository):
-            raise Errors.RepoMDError, "No updateinfo for local pkg"
+            raise (Errors.RepoMDError, "No updateinfo for local pkg")
         else:   # obj is a file object
             infile = obj
 
@@ -557,7 +557,7 @@ class UpdateMetadata(object):
             if elem.tag == 'update':
                 try:
                     un = UpdateNotice(elem)
-                except UpdateNoticeException, e:
+                except UpdateNoticeException as e:
                     msg = _("An update notice %s is broken, skipping.") % _rid(repoid)
                     if self._vlogger:
                         self._vlogger.log(logginglevels.DEBUG_1, "%s", msg)

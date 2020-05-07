@@ -270,9 +270,9 @@ if __name__ == '__main__':
         sys.exit(abs(main() or 0))
     except KeyboardInterrupt:
         systemExit(1, "\nProcess has been interrupted.")
-    except SystemExit, e:
+    except SystemExit as e:
         releaseLOCK()
         sys.exit(e.code)
-    except Exception, e:
+    except Exception as e:
         releaseLOCK()
         raise

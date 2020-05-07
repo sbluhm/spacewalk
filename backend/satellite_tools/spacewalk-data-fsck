@@ -206,7 +206,7 @@ def restore_file_path(file, row):
     cleanup = True
     try:  # 1st, make dirs needed
         os.makedirs(new_path.rsplit('/', 1)[0])
-    except OSError, e:
+    except OSError as e:
         if e.errno != 17:  # something broke up
             log(0, "File path restoration failed: %s" % row['path'])
             return 1
@@ -220,7 +220,7 @@ def restore_file_path(file, row):
         if cleanup == True:
             try:
                 os.removedirs(new_path.rsplit('/', 1)[0])
-            except OSError, e:
+            except OSError as e:
                 if e.errno != 39:
                     log(0, "Could not rollback file path restoration: %s" % row['path'])
                     return 1
@@ -231,7 +231,7 @@ def restore_file_path(file, row):
     try:
         os.remove(prefix + row['path'])
         os.removedirs(prefix + row['path'].rsplit('/', 1)[0])
-    except OSError, e:
+    except OSError as e:
         if e.errno == 2:
             log(2, "File %s%s was removed by someone else but transaction has been successfully completed" %
                 (prefix, row['path']))

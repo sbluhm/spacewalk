@@ -193,14 +193,14 @@ def storeRhsmManifest(options):
     if options.manifest and options.manifest != DEFAULT_RHSM_MANIFEST_LOCATION:
         try:
             manifest = open(os.path.abspath(os.path.expanduser(options.manifest)), 'rb').read()
-        except (IOError, OSError), e:
+        except (IOError, OSError) as e:
             msg = _('"%s" (specified in commandline)\n'
                     'could not be opened and read:\n%s') % (options.manifest, str(e))
             writeError(msg)
             raise
         try:
             writeRhsmManifest(options, manifest)
-        except (IOError, OSError), e:
+        except (IOError, OSError) as e:
             msg = _('"%s" could not be opened\nand/or written to:\n%s') % (
                 DEFAULT_RHSM_MANIFEST_LOCATION, str(e))
             writeError(msg)
@@ -425,20 +425,20 @@ def main():
     # Handle RHSM manifest
     try:
         cdn_activate = cdn_activation.Activation(options.manifest)
-    except CdnMappingsLoadError, e:
+    except CdnMappingsLoadError as e:
         writeError(e)
         return 15
-    except MissingSatelliteCertificateError, e:
+    except MissingSatelliteCertificateError as e:
         writeError(e)
         return 13
-    except IncorrectEntitlementsFileFormatError, e:
+    except IncorrectEntitlementsFileFormatError as e:
         writeError(e)
         return 18
 
     # general sanity/GPG check
     try:
         validateSatCert(cdn_activate.manifest.get_satellite_certificate())
-    except RHNCertGeneralSanityException, e:
+    except RHNCertGeneralSanityException as e:
         writeError(e)
         return 10
 
