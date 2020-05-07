@@ -385,7 +385,7 @@ def _delete_rpms(packageIds):
         return
     group = 300
     toDel = packageIds[:]
-    print "Deleting package metadata (" + str(len(toDel)) + "):"
+    print ("Deleting package metadata (" + str(len(toDel)) + "):")
     pb = ProgressBar(prompt='Removing:         ', endTag=' - complete',
                      finalSize=len(packageIds), finalBarLength=40, stream=sys.stdout)
     pb.printAll(1)

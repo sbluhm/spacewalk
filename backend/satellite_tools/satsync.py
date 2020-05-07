@@ -299,8 +299,8 @@ class Runner:
         """ Runs a function, and catches the most common error cases """
         try:
             ret = function()
-        except (xmlDiskSource.MissingXmlDiskSourceDirError,
-                xmlDiskSource.MissingXmlDiskSourceFileError), e:
+        except ((xmlDiskSource.MissingXmlDiskSourceDirError,
+                xmlDiskSource.MissingXmlDiskSourceFileError), e):
             log(-1, self._xml_file_dir_error_message +
                 '\n       Error message: %s\n' % e)
             return 1

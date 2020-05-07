@@ -1,4 +1,4 @@
-#!/usr/bin/python2 -u
+#!/usr/bin/python3 -u
 #
 # Copyright (c) 2008--2018 Red Hat, Inc.
 # Copyright (c) 2011 SUSE LLC
@@ -270,9 +270,9 @@ if __name__ == '__main__':
         sys.exit(abs(main() or 0))
     except KeyboardInterrupt:
         systemExit(1, "\nProcess has been interrupted.")
-    except SystemExit, e:
+    except SystemExit as e:
         releaseLOCK()
         sys.exit(e.code)
-    except Exception, e:
+    except Exception as e:
         releaseLOCK()
         raise
