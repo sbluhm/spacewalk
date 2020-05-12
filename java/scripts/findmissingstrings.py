@@ -43,4 +43,4 @@ for file in files:
             k = ''
             for nf in notfound:
                 k = k + '\t' + nf + '\n'
-            print "%s is missing the following keys:\n%s\n---" % (str(file), k)
+            print ("%s is missing the following keys:\n%s\n---" % (str(file), k))

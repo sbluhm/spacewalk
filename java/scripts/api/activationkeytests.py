@@ -23,7 +23,7 @@ class ActivationKeyTests(RhnTestCase):
         self.key = client.activationkey.create(self.session_key, self.key,
             "xmlrpc test key " + str(random_int), BASE_CHANNEL_LABEL, 0,
             [], False)
-        print "created key: %s" % self.key
+        print ("created key: %s" % self.key)
         return self.key
 
     # Manually verify results assuming no errors are thrown:

@@ -86,7 +86,7 @@ class ChannelSoftware(RhnTestCase):
     def test_list_errata_by_type(self):
         # list errata based upon type
         result = client.channel.software.listErrataByType(self.session_key, CHANNEL_LABEL, "Security Advisory")
-        #print "test_list_errata_by_type: channel.software.listErrataByType: Security=", result
+        #print ("test_list_errata_by_type: channel.software.listErrataByType: Security=", result)
 
         for entry in result:
             self.assertTrue(entry.has_key('advisory'))
@@ -98,7 +98,7 @@ class ChannelSoftware(RhnTestCase):
             self.assertEquals(entry['advisory_type'], 'Security Advisory')
 
         result = client.channel.software.listErrataByType(self.session_key, CHANNEL_LABEL, "Bug Fix Advisory")
-        #print "test_list_errata_by_type: channel.software.listErrataByType: Bug=", result
+        #print ("test_list_errata_by_type: channel.software.listErrataByType: Bug=", result)
 
         for entry in result:
             self.assertTrue(entry.has_key('advisory'))
@@ -110,7 +110,7 @@ class ChannelSoftware(RhnTestCase):
             self.assertEquals(entry['advisory_type'], 'Bug Fix Advisory')
 
         result = client.channel.software.listErrataByType(self.session_key, CHANNEL_LABEL, "Product Enhancement Advisory")
-        #print "test_list_errata_by_type: channel.software.listErrataByType: Enhancement=", result
+        #print ("test_list_errata_by_type: channel.software.listErrataByType: Enhancement=", result)
 
         for entry in result:
             self.assertTrue(entry.has_key('advisory'))
@@ -134,8 +134,8 @@ class ChannelSoftware(RhnTestCase):
 
         fromErrata = client.channel.software.listErrata(self.session_key, CHANNEL_LABEL)
         toErrata = client.channel.software.listErrata(self.session_key, CHANNEL_LABEL)
-        #print "test_merge_errata_all: fromErrata list=", fromErrata
-        #print "test_merge_errata_all: toErrata list=", toErrata
+        #print ("test_merge_errata_all: fromErrata list=", fromErrata)
+        #print ("test_merge_errata_all: toErrata list=", toErrata)
 
 
         # if the initial channel did not have any errata, this isn't really
@@ -161,7 +161,7 @@ class ChannelSoftware(RhnTestCase):
     def test_list_all_packages(self):
         results = client.channel.software.list_all_packages(self.session_key, 'centos-5.2-i386')
         for r in results:
-            print r
+            print (r)
 
     def test_merge_errata_by_date(self):
         # merge the errata from the channel created on setup in to a new
@@ -181,8 +181,8 @@ class ChannelSoftware(RhnTestCase):
 
         fromErrata = client.channel.software.listErrata(self.session_key, CHANNEL_LABEL)
         toErrata = client.channel.software.listErrata(self.session_key, CHANNEL_LABEL)
-        #print "test_merge_errata_by_date: fromErrata list=", fromErrata
-        #print "test_merge_errata_by_date: toErrata list=", toErrata
+        #print ("test_merge_errata_by_date: fromErrata list=", fromErrata)
+        #print ("test_merge_errata_by_date: toErrata list=", toErrata)
 
 
         # if the initial channel did not have any errata, this isn't really

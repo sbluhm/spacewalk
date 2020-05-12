@@ -49,7 +49,7 @@ def main():
     key = login()
     #create custom channel
     channel = uniquify(options.prefix)
-    print channel
+    print (channel)
     client.channel.software.create(key, channel,uniquify( options.prefix.lower() + "-channel"), options.prefix.title() + " channel","channel-ia32","")
 
     #upload the spacewalk koan rpm
@@ -59,7 +59,7 @@ def main():
 
     act_key = client.activationkey.create(key, uniquify(options.prefix.lower()),
                         uniquify(options.prefix.title() + " Key"), channel, [], False)
-    print act_key
+    print (act_key)
     #create the distro
     distro = uniquify(options.prefix.lower())
     client.kickstart.tree.create(key, distro,
