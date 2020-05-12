@@ -7,8 +7,9 @@
 %global py3_deps   1
 %endif
 
-# we need python2 libs for server!
+%if 0%{?rhel} != 8 
 %global build_py2   1
+%endif
 
 %{!?_presetdir:%global _presetdir /lib/systemd/system-preset}
 %if %{_vendor} == "debbuild"

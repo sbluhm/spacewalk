@@ -9,8 +9,9 @@
 %{!?pylint3_check: %global pylint3_check 1}
 %endif
 
-# we need python2 libs for server!
+%if 0%{?rhel} != 8
 %global build_py2   1
+%endif
 
 %define pythonX %{?default_py3: python3}%{!?default_py3: python2}
 
@@ -64,12 +65,12 @@ Python 2 specific files for rhnpush.
 Summary: Package uploader for the Spacewalk or Red Hat Satellite Server
 %{?python_provide:%python_provide python3-%{name}}
 Requires: %{name} = %{version}-%{release}
-Requires: rpm-python3
+Requires: python3-rpm
 Requires: python3-rhnlib >= 2.8.3
 Requires: python3-rhn-client-tools
 Requires: python3-spacewalk-backend-libs
 Requires: python3-spacewalk-usix
-BuildRequires: spacewalk-backend-libs > 1.8.33
+BuildRequires: python3-spacewalk-backend-libs
 BuildRequires: python3-devel
 BuildRequires: python3-rhn-client-tools
 BuildRequires: python3-rpm-macros

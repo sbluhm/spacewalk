@@ -141,7 +141,11 @@ Python 3 common files needed by osad and osa-dispatcher
 %package -n osa-dispatcher
 Summary: OSA dispatcher
 Requires: spacewalk-backend-server >= 1.2.32
+%if  0%{?rhel} >= 8
+Requires: python3-osa-dispatcher = %{version}-%{release}
+%else
 Requires: python2-osa-dispatcher = %{version}-%{release}
+%endif
 Requires: lsof
 Conflicts: %{name} < %{version}-%{release}
 Conflicts: %{name} > %{version}-%{release}
