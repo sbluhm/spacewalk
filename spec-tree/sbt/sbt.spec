@@ -319,7 +319,7 @@ BuildRequires:	maven-local
 BuildRequires:	mvn(org.bouncycastle:bcprov-jdk16)
 BuildRequires:	mvn(org.bouncycastle:bcpg-jdk16)
 BuildRequires:	hawtjni
-BuildRequires:	mvn(org.fusesource.jansi:jansi) > 1.12
+BuildRequires:	mvn(org.fusesource.jansi:jansi) = 1.12
 BuildRequires:	jline2
 
 BuildRequires:	proguard
