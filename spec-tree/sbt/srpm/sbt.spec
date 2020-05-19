@@ -17,7 +17,7 @@
 %global sbt_short_version %{sbt_major}.%{sbt_minor}
 %global sbt_version %{sbt_major}.%{sbt_minor}.%{sbt_patch}
 %global sbt_full_version %{sbt_version}%{sbt_build}
-%global typesafe_repo https://repo.typesafe.com/typesafe/ivy-releases
+%global typesafe_repo http://repo.typesafe.com/typesafe/ivy-releases
 
 %global ivy_local_dir ivy-local
 
@@ -94,12 +94,12 @@ Source15:	https://raw.github.com/willb/rpm-packaging/master/sbt-packaging/rpmbui
 
 # Ivy POM
 # necessary for bootstrapping with sbt 0.13.1
-Source18:	https://repo1.maven.org/maven2/org/apache/ivy/ivy/2.3.0-rc1/ivy-2.3.0-rc1.pom
+Source18:	http://repo1.maven.org/maven2/org/apache/ivy/ivy/2.3.0-rc1/ivy-2.3.0-rc1.pom
 # necessary for F19 (which doesn't ship with an Ivy pom)
-Source20:	https://repo1.maven.org/maven2/org/apache/ivy/ivy/2.3.0/ivy-2.3.0.pom
+Source20:	http://repo1.maven.org/maven2/org/apache/ivy/ivy/2.3.0/ivy-2.3.0.pom
 
 # Ivy 2.3.0-rc1 jar (necessary for bootstrapping with sbt 0.13.1)
-Source19:	https://repo1.maven.org/maven2/org/apache/ivy/ivy/2.3.0-rc1/ivy-2.3.0-rc1.jar
+Source19:	http://repo1.maven.org/maven2/org/apache/ivy/ivy/2.3.0-rc1/ivy-2.3.0-rc1.jar
 
 
 # sbt script (to be obsoleted in future releases)
@@ -312,16 +312,15 @@ Source184:	%sbt_ivy_descriptor precompiled-2_9_3
 
 BuildRequires:	mvn(org.scala-lang:scala-compiler)
 BuildRequires:	java-devel
-BuildRequires:	python3
+BuildRequires:	python
 # maven is required because climbing-nemesis.py uses xmvn-resolve
 BuildRequires:	maven-local
 
 BuildRequires:	mvn(org.bouncycastle:bcprov-jdk16)
 BuildRequires:	mvn(org.bouncycastle:bcpg-jdk16)
 BuildRequires:	hawtjni
-BuildRequires:	mvn(org.fusesource.jansi:jansi) > 1.12
+BuildRequires:	mvn(org.fusesource.jansi:jansi)
 BuildRequires:	jline2
-
 BuildRequires:	proguard
 
 BuildRequires:	javapackages-tools
