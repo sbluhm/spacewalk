@@ -378,7 +378,7 @@ sbt is the simple build tool for Scala and Java projects.
 %prep
 %setup -q -n %{name}-%{sbt_version}%{sbt_build}
 %define xmvn_bootstrap true
-mvn org.apache.maven.plugins:maven-dependency-plugin:2.1:get -Dartifact=org.fusesource.jansi:jansi:1.12
+mvn org.apache.maven.plugins:maven-dependency-plugin:2.1:get -DrepoUrl=url -Dartifact=org.fusesource.jansi:jansi:1.12
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
