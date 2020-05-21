@@ -377,7 +377,7 @@ sbt is the simple build tool for Scala and Java projects.
 
 %prep
 %setup -q -n %{name}-%{sbt_version}%{sbt_build}
-
+%define xmvn_bootstrap true
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
