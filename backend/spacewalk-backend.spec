@@ -31,7 +31,6 @@
 %global apache_group apache
 %global apache_pkg httpd
 %endif
-/satellite_tools/accounts/satpasswd 
 %if 0%{?suse_version} || 0%{?mageia}
 %{!?pylint_check: %global pylint_check 0}
 %global apacheconfd %{_sysconfdir}/apache2/conf.d
