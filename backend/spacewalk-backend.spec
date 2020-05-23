@@ -429,7 +429,6 @@ make -f Makefile.backend install PREFIX=$RPM_BUILD_ROOT \
 %if 0%{?build_server_py3}
 mv $RPM_BUILD_ROOT%{python2rhnroot}/* $RPM_BUILD_ROOT%{pythonrhnroot}
 egrep -lRZ '/usr/bin/python2' $RPM_BUILD_ROOT |  xargs -0 -l sed -i 's|#!/usr/bin/python2|#!/usr/bin/python3|'
-%endif
 %else
 install -d $RPM_BUILD_ROOT%{python3rhnroot}/common
 cp $RPM_BUILD_ROOT%{pythonrhnroot}/__init__.py \
